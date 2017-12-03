@@ -1,0 +1,19 @@
+{
+  "name": "inventor",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/inventorjs/inventor.git"
+  },
+  "author": "sunkeysun",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/inventorjs/inventor/issues"
+  },
+  "homepage": "https://github.com/inventorjs/inventor#readme"
+}
