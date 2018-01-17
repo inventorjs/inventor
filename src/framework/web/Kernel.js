@@ -9,7 +9,7 @@ import moment from 'moment'
 import React, { Component } from 'react'
 import ReactDom from 'react-dom'
 import IException from '../support/base/IException'
-import createRoot from '../shared/app/webRoot.jsx'
+import createRoot from '../shared/app/webRoot'
 import RequestProvider from '../request/RequestProvider'
 import version from '../version'
 

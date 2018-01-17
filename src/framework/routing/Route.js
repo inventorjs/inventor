@@ -5,8 +5,6 @@
  */
 
 import IClass from '../support/base/IClass'
-import NotFoundException from '../http/exceptions/NotFound'
-import NotImplementedException from '../http/exceptions/NotImplemented'
 
 export default class Route extends IClass {
     _handler = null
@@ -47,7 +45,7 @@ export default class Route extends IClass {
             const controllerInstance = new Controller(request, response)
 
             if (!_.isFunction(controllerInstance[actionName])) {
-                throw new NotImplementedException()
+                throw new IException('action not a function.')
             }
 
             return controllerInstance[actionName]()
