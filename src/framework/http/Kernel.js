@@ -83,11 +83,6 @@ export default class Kernel {
         return targetPath
     }
 
-    get viewsPath() {
-        const targetPath = `${this.serverPath}/views`
-        return targetPath
-    }
-
     get modelsPath() {
         const targetPath = `${this.appPath}/models`
         return targetPath

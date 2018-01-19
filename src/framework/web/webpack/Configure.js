@@ -140,9 +140,6 @@ export default class WebpackConfigure {
                         allChunks: true,
                     }
                 ),
-                // new webpack.DefinePlugin({
-                //     'process.env.NODE_ENV': this._ifRelease('production', 'development'),
-                // }),
                 new webpack.optimize.CommonsChunkPlugin({
                     name: [
                         'common/common',
@@ -178,6 +175,11 @@ export default class WebpackConfigure {
                 })
             )
             webpackConfig.plugins.unshift(new ProgressBarPlugin())
+            webpackConfig.plugins.unshift(
+                new webpack.DefinePlugin({
+                    'process.env.NODE_ENV': JSON.stringify('production'),
+                })
+            )
         }
 
         return webpackConfig
@@ -207,8 +209,8 @@ export default class WebpackConfigure {
                 plugins.push(
                     new HtmlWebpackPlugin({
                         chunks: [ outputName ],
-                        filename: path.resolve(this.viewsPath, `apps/${appName}/assets/index.jsx`),
-                        template: path.resolve(__dirname, 'assets.tpl'),
+                        filename: path.resolve(this.sharedPath, `apps/${appName}/addon/.build.jsx`),
+                        template: path.resolve(__dirname, 'addon.tpl'),
                         inject: false,
                     })
                 )
@@ -242,8 +244,8 @@ export default class WebpackConfigure {
         plugins.push(
             new HtmlWebpackPlugin({
                 chunks: [ outputName ],
-                filename: path.resolve(this.viewsPath, 'common/assets/index.jsx'),
-                template: path.resolve(__dirname, 'assets.tpl'),
+                filename: path.resolve(this.sharedPath, 'common/addon/.build.jsx'),
+                template: path.resolve(__dirname, 'addon.tpl'),
                 inject: false,
             })
         )
@@ -273,8 +275,8 @@ export default class WebpackConfigure {
         plugins.push(
             new HtmlWebpackPlugin({
                 chunks: [ outputName ],
-                filename: path.resolve(this.viewsPath, `vendor/assets/index.jsx`),
-                template: path.resolve(__dirname, 'assets.tpl'),
+                filename: path.resolve(this.sharedPath, `vendor/addon/.build.jsx`),
+                template: path.resolve(__dirname, 'addon.tpl'),
                 inject: false,
             })
         )

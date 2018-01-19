@@ -14,13 +14,13 @@ export default function(props={}) {
         preloadedState={},
         appName='',
         appContent='',
-        viewsPath='',
+        sharedPath='',
         ssr=false,
     } = props
 
-    const { jsList: vendorJsList=[], cssList: vendorCssList=[] } = require(`${viewsPath}/vendor`)
-    const { jsList: commonJsList=[], cssList: commonCssList=[] } = require(`${viewsPath}/common`)
-    const { jsList=[], cssList=[] } = require(`${viewsPath}/apps/${appName}`)
+    const { jsList: vendorJsList=[], cssList: vendorCssList=[] } = require(`${sharedPath}/vendor/addon`)
+    const { jsList: commonJsList=[], cssList: commonCssList=[] } = require(`${sharedPath}/common/addon`)
+    const { jsList=[], cssList=[] } = require(`${sharedPath}/apps/${appName}/addon`)
 
     const realJsList = vendorJsList.concat(commonJsList).concat(jsList)
     const realCssList = vendorCssList.concat(commonCssList).concat(cssList)

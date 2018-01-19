@@ -114,7 +114,7 @@ export default class Response extends IClass {
             preloadedState: preloadedState,
             appName: appName,
             appContent: appContent,
-            viewsPath: app().viewsPath,
+            sharedPath: app().sharedPath,
         }
         return this.send(renderToStaticMarkup(<HTML { ...props } />))
     }
