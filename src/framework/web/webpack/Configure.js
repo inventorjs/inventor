@@ -209,7 +209,7 @@ export default class WebpackConfigure {
                 plugins.push(
                     new HtmlWebpackPlugin({
                         chunks: [ outputName ],
-                        filename: path.resolve(this.sharedPath, `apps/${appName}/addon/.build.jsx`),
+                        filename: path.resolve(this.sharedPath, `apps/${appName}/addon/__build.jsx`),
                         template: path.resolve(__dirname, 'addon.tpl'),
                         inject: false,
                     })
@@ -244,7 +244,7 @@ export default class WebpackConfigure {
         plugins.push(
             new HtmlWebpackPlugin({
                 chunks: [ outputName ],
-                filename: path.resolve(this.sharedPath, 'common/addon/.build.jsx'),
+                filename: path.resolve(this.sharedPath, 'common/addon/__build.jsx'),
                 template: path.resolve(__dirname, 'addon.tpl'),
                 inject: false,
             })
@@ -275,7 +275,7 @@ export default class WebpackConfigure {
         plugins.push(
             new HtmlWebpackPlugin({
                 chunks: [ outputName ],
-                filename: path.resolve(this.sharedPath, `vendor/addon/.build.jsx`),
+                filename: path.resolve(this.sharedPath, `vendor/addon/__build.jsx`),
                 template: path.resolve(__dirname, 'addon.tpl'),
                 inject: false,
             })

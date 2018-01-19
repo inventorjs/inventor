@@ -94,7 +94,13 @@ export default class Router extends IClass {
 
     _handle(method, routePath, handler, options) {
         const preRoutePath = _.get(this, 'routePath', '')
-        routePath = path.normalize(`${preRoutePath}${routePath}`)
+        if (_.isArray(routePath)) {
+            routePath = _.map(routePath, (routePathItem) => {
+                return path.normalize(`${preRoutePath}${routePathItem}`)
+            })
+        } else {
+            routePath = path.normalize(`${preRoutePath}${routePath}`)
+        }
 
         const route = new Route(handler)
 
