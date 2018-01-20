@@ -134,6 +134,7 @@ export default class WebpackConfigure {
                 ],
             },
             plugins: [
+                new webpack.NoErrorsPlugin(),
                 new ExtractTextPlugin(
                     this._ifRelease('[name].[chunkhash].css', '[name].css'),
                     {
@@ -180,6 +181,9 @@ export default class WebpackConfigure {
                     'process.env.NODE_ENV': JSON.stringify('production'),
                 })
             )
+        } else {
+            webpackConfig.plugins.push(new webpack.HotModuleReplacementPlugin())
+            webpackConfig.plugins.push(new webpack.NamedModulesPlugin())
         }
 
         return webpackConfig
@@ -204,7 +208,7 @@ export default class WebpackConfigure {
                 const config = _.extend({}, appsConfig.common, appsConfig[appName])
                 const outputName = `apps/${appName}/index`
                 const entryPath = path.resolve(this.webPath, `apps/${appName}.js`)
-                entry[outputName] = [entryPath]
+                entry[outputName] = [ entryPath ]
 
                 plugins.push(
                     new HtmlWebpackPlugin({
@@ -239,7 +243,7 @@ export default class WebpackConfigure {
         let output = []
         const outputName = `common/common`
         const entryPath = path.resolve(this.sharedPath, 'common/index.js')
-        entry[outputName] = [entryPath]
+        entry[outputName] = [ entryPath ]
 
         plugins.push(
             new HtmlWebpackPlugin({
@@ -269,8 +273,8 @@ export default class WebpackConfigure {
         let plugins = []
         let output = []
         const outputName = `vendor/vendor`
-        const entryPath = _.uniq(this._defaultVendor.concat(vendorConfig.items))
-        entry[outputName] = entryPath
+        const entryPaths = _.uniq(this._defaultVendor.concat(vendorConfig.items))
+        entry[outputName] = entryPaths
 
         plugins.push(
             new HtmlWebpackPlugin({

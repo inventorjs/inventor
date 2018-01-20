@@ -20,16 +20,11 @@ export default class DevServer {
         webpackConfig.entry = _.mapValues(webpackConfig.entry, (val, key) => {
             const newVal = [
                 `webpack-dev-server/client?${publicPath}`,
-                'webpack/hot/dev-server',
+                'webpack/hot/only-dev-server',
                 ...val,
             ]
             return newVal
         })
-
-        webpackConfig.plugins.push(
-            new webpack.NamedModulesPlugin(),
-            new webpack.HotModuleReplacementPlugin()
-        )
 
         const compiler = webpack(webpackConfig)
         this._server = new WebpackDevServer(compiler, {

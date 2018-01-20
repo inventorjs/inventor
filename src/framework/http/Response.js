@@ -4,10 +4,11 @@
  * @author : sunkeysun
  */
 import React from 'react'
+import { routerReducer, routerMiddleware } from 'react-router-redux'
 import { renderToStaticMarkup, renderToString } from 'react-dom/server'
+import { createStore, applyMiddleware } from 'redux'
 
 import IClass from '../support/base/IClass'
-import { extendObject } from '../shared/common/modules/utils'
 import HTML from '../shared/common/components/page/HTML'
 
 export default class Response extends IClass {
@@ -95,15 +96,33 @@ export default class Response extends IClass {
         }
     }
 
-    _render({ appPath, appName='', preloadedState={}, rootReducer=()=>{}, rootSaga={} }) {
-        const appConfig = app().config('app')
-        let appContent = ''
+    _renderAppContent(appPath, preloadedState={}) {
+        const RootComponent = require('../shared/app/ServerRoot').default
+        const App = require(appPath).default
+        const rootSaga = function* root() {}
+        const rootReducer = combineReducers({
+            preloadedState: (state=preloadedState) => state,
+            router: routerReducer,
+        })
 
+        const initialState = { preloadedState }
+        const store = createStore(rootReducer, initialState)
+
+        const rootState = {
+            store: store,
+            context: {},
+            location: this._ctx.request.path,
+        }
+
+        return renderToString(<RootComponent { ...rootState } />)
+    }
+
+    _render({ appPath, appName='', preloadedState={} }) {
+        const appConfig = app().config('app')
+
+        let appContent = ''
         if (!!appConfig.ssr) {
-            const createRoot = require('../shared/app/serverRoot').default
-            const App = require(appPath).default
-            const RootComponent = createRoot({ App, rootReducer, rootSaga })
-            appContent = renderToString(<RootComponent { ...preloadedState } />)
+            appContent = this._renderAppContent(appPath, preloadedState)
         }
 
         const props = {
@@ -124,9 +143,6 @@ export default class Response extends IClass {
 
         const appPath = `${app().sharedPath}/apps/${appName}`
 
-        let rootReducer = {}
-        let rootSaga = function* root() {}
-
-        return this._render({ appPath: `${appPath}/App`, appName, preloadedState, rootReducer, rootSaga })
+        return this._render({ appPath: `${appPath}/App`, appName, preloadedState })
     }
 }

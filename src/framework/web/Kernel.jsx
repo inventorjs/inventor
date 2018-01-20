@@ -8,8 +8,13 @@ import lodash from 'lodash'
 import moment from 'moment'
 import React, { Component } from 'react'
 import ReactDom from 'react-dom'
+import createHistory from 'history/createBrowserHistory'
+import { createStore, applyMiddleware, combineReducers } from 'redux'
+import { routerReducer, routerMiddleware } from 'react-router-redux'
+import createSagaMiddleware from 'redux-saga'
+
 import IException from '../support/base/IException'
-import createRoot from '../shared/app/webRoot'
+import RootComponent from '../shared/app/WebRoot'
 import RequestProvider from '../request/RequestProvider'
 import version from '../version'
 
@@ -70,17 +75,39 @@ export default class Kernel {
         const preloadedState = global.__PRELOADED_STATE__
         const ssr = global.__SSR__
 
-        const App = this._App
-        const rootReducer = this._rootReducer
-        const rootSaga = this._rootSaga
+        const history = createHistory()
 
-        const RootComponent = createRoot({ App, rootReducer, rootSaga })
+        const App = this._App
+        const rootReducer = {}
+        const rootSaga = function* root() {}
+
+        const rooteReducer = combineReducers({
+            preloadedState: (state=preloadedState) => state,
+            router: routerReducer,
+        })
+
+        const sagaMiddleware = createSagaMiddleware()
+
+        const middleware = applyMiddleware(
+                                routerMiddleware(history),
+                                sagaMiddleware
+                            )
+
+        const initialState = { preloadedState }
+        const store = createStore(rooteReducer, initialState, middleware)
+
+        sagaMiddleware.run(rootSaga)
 
         let render = ReactDom.render
         if (!!ssr) {
             render = ReactDom.hydrate
         }
 
-        return render(<RootComponent { ...preloadedState } />, document.getElementById('__APP__'))
+        const rootState = { store, App, history }
+
+        render(
+            <RootComponent { ...rootState } />,
+            document.getElementById('__APP__')
+        )
     }
 }
