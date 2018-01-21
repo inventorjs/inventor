@@ -34,7 +34,6 @@ export default class WebpackConfigure {
         'react-router-redux',
         'redux',
         'react-redux',
-        'redux-saga',
         'core-decorators',
     ]
 
@@ -101,7 +100,7 @@ export default class WebpackConfigure {
                         }),
                     },
                     {
-                        test: /\.less$/,
+                        test: /\.scss$/,
                         exclude: /(node_modules|vendor)/,
                         use: ExtractTextPlugin.extract({
                             fallback: 'style-loader',
@@ -114,7 +113,7 @@ export default class WebpackConfigure {
                                     }
                                 },
                                 {
-                                    loader: 'less-loader',
+                                    loader: 'sass-loader',
                                 },
                             ],
                         }),

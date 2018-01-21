@@ -7,6 +7,7 @@ import React from 'react'
 import { routerReducer, routerMiddleware } from 'react-router-redux'
 import { renderToStaticMarkup, renderToString } from 'react-dom/server'
 import { createStore, applyMiddleware } from 'redux'
+import promiseMiddleware from 'redux-promise-middleware'
 
 import IClass from '../support/base/IClass'
 import HTML from '../shared/common/components/page/HTML'
@@ -96,17 +97,18 @@ export default class Response extends IClass {
         }
     }
 
-    _renderAppContent(appPath, preloadedState={}) {
+    _renderAppContent(appPath, initialState={}) {
         const RootComponent = require('../shared/app/ServerRoot').default
         const App = require(appPath).default
-        const rootSaga = function* root() {}
         const rootReducer = combineReducers({
-            preloadedState: (state=preloadedState) => state,
+            ...initialState,
             router: routerReducer,
         })
+        const middleware = applyMiddleware(
+                                promiseMiddleware(),
+                            )
 
-        const initialState = { preloadedState }
-        const store = createStore(rootReducer, initialState)
+        const store = createStore(rootReducer, initialState, middleware)
 
         const rootState = {
             store: store,
@@ -117,12 +119,12 @@ export default class Response extends IClass {
         return renderToString(<RootComponent { ...rootState } />)
     }
 
-    _render({ appPath, appName='', preloadedState={} }) {
+    _render({ appPath, appName='', initialState={} }) {
         const appConfig = app().config('app')
 
         let appContent = ''
         if (!!appConfig.ssr) {
-            appContent = this._renderAppContent(appPath, preloadedState)
+            appContent = this._renderAppContent(appPath, initialState)
         }
 
         const props = {
@@ -130,7 +132,7 @@ export default class Response extends IClass {
             title: _.get(this.locals, 'PAGE_TITLE', ''),
             keywords: _.get(this.locals, 'PAGE_KEYWORDS', ''),
             description: _.get(this.locals, 'PAGE_DESCRIPTION', ''),
-            preloadedState: preloadedState,
+            initialState: initialState,
             appName: appName,
             appContent: appContent,
             sharedPath: app().sharedPath,
@@ -138,11 +140,11 @@ export default class Response extends IClass {
         return this.send(renderToStaticMarkup(<HTML { ...props } />))
     }
 
-    renderApp(appName, preloadedState={}) {
+    renderApp(appName, initialState={}) {
         this.header('content-type', 'text/html')
 
         const appPath = `${app().sharedPath}/apps/${appName}`
 
-        return this._render({ appPath: `${appPath}/App`, appName, preloadedState })
+        return this._render({ appPath: `${appPath}/App`, appName, initialState })
     }
 }

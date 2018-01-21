@@ -10,7 +10,7 @@ import IClass from '../../support/base/IClass'
 export default class Log4jsDriver extends IClass {
     _levels = [ 'debug', 'info', 'warn', 'error' ]
 
-    _modes = [ 'single', 'dateFile', 'levelFile', 'levelDir' ]
+    _modes = [ 'console', 'single', 'dateFile', 'levelFile', 'levelDir' ]
 
     _dateFileConfig = {
         type: 'dateFile',
@@ -44,7 +44,19 @@ export default class Log4jsDriver extends IClass {
 
         const logPath = logConfig.logPath
 
-        if (logConfig.mode === 'single') {
+        if (logConfig.mode === 'console') {
+            this._config.appenders = {
+                default: {
+                    type: 'console',
+                },
+            }
+            this._config.categories = {
+                default: {
+                    appenders: [ 'default' ],
+                    level: 'debug',
+                },
+            }
+        } else if (logConfig.mode === 'single') {
             this._config.appenders = {
                 default: {
                     type: 'file',

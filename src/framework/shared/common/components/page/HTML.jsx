@@ -11,7 +11,7 @@ export default function(props={}) {
         title='',
         keywords='',
         description='',
-        preloadedState={},
+        initialState={},
         appName='',
         appContent='',
         sharedPath='',
@@ -25,7 +25,7 @@ export default function(props={}) {
     const realJsList = vendorJsList.concat(commonJsList).concat(jsList)
     const realCssList = vendorCssList.concat(commonCssList).concat(cssList)
 
-    const jsonPreloadedState = JSON.stringify(preloadedState)
+    const jsonInitialState = JSON.stringify(initialState)
 
     return (
         <html>
@@ -43,7 +43,7 @@ export default function(props={}) {
                 <script dangerouslySetInnerHTML={ {
                     __html: `
                         window.__SSR__ = ${ssr}
-                        window.__PRELOADED_STATE__ = ${jsonPreloadedState}
+                        window.__INITIAL_STATE__ = ${jsonInitialState}
                         window.__APP_NAME__ = '${appName}'
                     `
                 } }></script>

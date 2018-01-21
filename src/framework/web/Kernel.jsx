@@ -11,7 +11,7 @@ import ReactDom from 'react-dom'
 import createHistory from 'history/createBrowserHistory'
 import { createStore, applyMiddleware, combineReducers } from 'redux'
 import { routerReducer, routerMiddleware } from 'react-router-redux'
-import createSagaMiddleware from 'redux-saga'
+import promiseMiddleware from 'redux-promise-middleware'
 
 import IException from '../support/base/IException'
 import RootComponent from '../shared/app/WebRoot'
@@ -23,13 +23,11 @@ export default class Kernel {
     _logger = console
 
     _App = null
-    _rootReducer = {}
-    _rootSaga = {}
+    _reducers = {}
 
-    constructor({ App, rootReducer, rootSaga }) {
+    constructor({ App, reducers }) {
         this._App = App
-        this._rootReducer = rootReducer
-        this._rootSaga = rootSaga
+        this._reducers = reducers
 
         this._registerGlobal()
     }
@@ -72,31 +70,23 @@ export default class Kernel {
     run() {
         this._registerBaseProviders()
 
-        const preloadedState = global.__PRELOADED_STATE__
+        const initialState = global.__INITIAL_STATE__
         const ssr = global.__SSR__
 
         const history = createHistory()
 
         const App = this._App
-        const rootReducer = {}
-        const rootSaga = function* root() {}
-
-        const rooteReducer = combineReducers({
-            preloadedState: (state=preloadedState) => state,
+        const rootReducer = combineReducers({
+            ...this._reducers,
             router: routerReducer,
         })
 
-        const sagaMiddleware = createSagaMiddleware()
-
         const middleware = applyMiddleware(
                                 routerMiddleware(history),
-                                sagaMiddleware
+                                promiseMiddleware(),
                             )
 
-        const initialState = { preloadedState }
-        const store = createStore(rooteReducer, initialState, middleware)
-
-        sagaMiddleware.run(rootSaga)
+        const store = createStore(rootReducer, initialState, middleware)
 
         let render = ReactDom.render
         if (!!ssr) {

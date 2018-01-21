@@ -12,7 +12,7 @@ import { hot } from 'react-hot-loader'
 @hot(module)
 export default class extends Component {
     render() {
-        const { store, App, history } = this.props
+        const { store, history, App } = this.props
 
         return (
             <Provider store={ store }>
