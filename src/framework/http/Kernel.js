@@ -93,6 +93,11 @@ export default class Kernel {
         return targetPath
     }
 
+    get webpackPath() {
+        const targetPath = `${this._basePath}/webpack`
+        return targetPath
+    }
+
     get logger() {
         return this._logger
     }

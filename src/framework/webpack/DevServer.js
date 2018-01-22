@@ -19,7 +19,7 @@ export default class DevServer {
 
         webpackConfig.entry = _.mapValues(webpackConfig.entry, (val, key) => {
             const newVal = [
-                `webpack-dev-server/client?${publicPath}`,
+                `webpack-dev-server/client?${publicPath}/`,
                 'webpack/hot/only-dev-server',
                 ...val,
             ]
@@ -30,7 +30,7 @@ export default class DevServer {
         this._server = new WebpackDevServer(compiler, {
             contentBase: '/',
             hot: true,
-            publicPath: publicPath,
+            publicPath: publicPath+'/',
             historyApiFallback: true,
             headers: {
                 'Access-Control-Allow-Origin': `http://${webServer.host}:${webServer.port}`,

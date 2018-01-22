@@ -12,6 +12,7 @@ export default function(props={}) {
         keywords='',
         description='',
         initialState={},
+        nodeEnv='',
         appName='',
         appContent='',
         sharedPath='',
@@ -44,6 +45,7 @@ export default function(props={}) {
                     __html: `
                         window.__SSR__ = ${ssr}
                         window.__INITIAL_STATE__ = ${jsonInitialState}
+                        window.__NODE_ENV__ = '${nodeEnv}'
                         window.__APP_NAME__ = '${appName}'
                     `
                 } }></script>

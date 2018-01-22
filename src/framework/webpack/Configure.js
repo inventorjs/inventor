@@ -40,7 +40,7 @@ export default class WebpackConfigure {
     constructor({ basePath, publicPath, buildMode='release' }) {
         this._basePath = basePath
         this._buildMode = buildMode === 'release' ? 'release' : 'debug'
-        this._publicPath = publicPath
+        this._publicPath = publicPath + '/'
     }
 
     get viewsPath() {
@@ -124,7 +124,7 @@ export default class WebpackConfigure {
                             {
                                 loader: 'url-loader',
                                 query: {
-                                    limit: 512 * 1024,
+                                    limit: 1,
                                     name: 'resources/[name].[ext]?[hash]',
                                 }
                             },
@@ -134,6 +134,9 @@ export default class WebpackConfigure {
             },
             plugins: [
                 new webpack.NoErrorsPlugin(),
+                new webpack.DefinePlugin({
+                    'process.env.NODE_ENV': this._ifRelease(JSON.stringify('production'), JSON.stringify('development')),
+                }),
                 new ExtractTextPlugin(
                     this._ifRelease('[name].[chunkhash].css', '[name].css'),
                     {
@@ -175,11 +178,6 @@ export default class WebpackConfigure {
                 })
             )
             webpackConfig.plugins.unshift(new ProgressBarPlugin())
-            webpackConfig.plugins.unshift(
-                new webpack.DefinePlugin({
-                    'process.env.NODE_ENV': JSON.stringify('production'),
-                })
-            )
         } else {
             webpackConfig.plugins.push(new webpack.HotModuleReplacementPlugin())
             webpackConfig.plugins.push(new webpack.NamedModulesPlugin())

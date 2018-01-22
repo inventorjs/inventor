@@ -8,6 +8,7 @@ import lodash from 'lodash'
 import moment from 'moment'
 import React, { Component } from 'react'
 import ReactDom from 'react-dom'
+import { hot } from 'react-hot-loader'
 import createHistory from 'history/createBrowserHistory'
 import { createStore, applyMiddleware, combineReducers } from 'redux'
 import { routerReducer, routerMiddleware } from 'react-router-redux'
@@ -22,10 +23,12 @@ export default class Kernel {
     _request = null
     _logger = console
 
+    _webpackConfig = ''
     _App = null
     _reducers = {}
 
-    constructor({ App, reducers }) {
+    constructor({ webpackConfig, App, reducers }) {
+        this._webpackConfig = webpackConfig
         this._App = App
         this._reducers = reducers
 
@@ -56,6 +59,7 @@ export default class Kernel {
         lodash.extend(global, {
             IException,
             moment,
+            hotLoad: hot,
             _: lodash,
             app: () => this,
         })
@@ -72,21 +76,30 @@ export default class Kernel {
 
         const initialState = global.__INITIAL_STATE__
         const ssr = global.__SSR__
+        const nodeEnv = global.__NODE_ENV__
 
         const history = createHistory()
 
         const App = this._App
+
+        const buildMode = nodeEnv === 'local' ? 'debug' : 'release'
+        const config = this._webpackConfig[buildMode]
+
+        const variables = {
+            staticPath: config.publicPath,
+        }
+
         const rootReducer = combineReducers({
             ...this._reducers,
-            router: routerReducer,
+            variables: (state=variables) => state,
+            routing: routerReducer,
         })
 
         const middleware = applyMiddleware(
-                                routerMiddleware(history),
-                                promiseMiddleware(),
+                                promiseMiddleware()
                             )
 
-        const store = createStore(rootReducer, initialState, middleware)
+        const store = createStore(rootReducer, initialState)
 
         let render = ReactDom.render
         if (!!ssr) {

@@ -11,6 +11,7 @@ import 'babel-polyfill'
 import Kernel from 'inventor/web'
 import App from '@shared/apps/<-appName->/App'
 import reducers from '@shared/apps/<-appName->/redux'
+import webpackConfig from '@webpack/config'
 
-const kernel = new Kernel({ App, reducers })
+const kernel = new Kernel({ webpackConfig, App, reducers })
 kernel.run()

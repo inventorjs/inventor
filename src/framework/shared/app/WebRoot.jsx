@@ -6,10 +6,8 @@
 
 import React, { Component } from 'react'
 import { Provider } from 'react-redux'
-import { ConnectedRouter, routerReducer, routerMiddleware } from 'react-router-redux'
-import { hot } from 'react-hot-loader'
+import { ConnectedRouter } from 'react-router-redux'
 
-@hot(module)
 export default class extends Component {
     render() {
         const { store, history, App } = this.props

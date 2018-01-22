@@ -164,7 +164,7 @@ export default class extends IClass {
             const timeCost = Date.now() - startTime
             this._logInfo(e, timeCost)
 
-            throw e
+            throw new IException(e)
         }
     }
 }
