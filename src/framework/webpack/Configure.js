@@ -133,7 +133,7 @@ export default class WebpackConfigure {
                 ],
             },
             plugins: [
-                new webpack.NoErrorsPlugin(),
+                new webpack.NoEmitOnErrorsPlugin(),
                 new webpack.DefinePlugin({
                     'process.env.NODE_ENV': this._ifRelease(JSON.stringify('production'), JSON.stringify('development')),
                 }),
