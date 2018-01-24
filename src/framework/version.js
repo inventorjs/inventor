@@ -5,5 +5,5 @@
  */
 export default {
     name: 'Inventor',
-    version: '0.0.8',
+    version: '0.0.9',
 }

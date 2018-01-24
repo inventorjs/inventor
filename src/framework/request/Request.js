@@ -148,6 +148,10 @@ export default class extends IClass {
             targetConfig.headers = { ...this._defaultConfig.headers, ...targetConfig.headers }
         }
 
+        if (_.toLower(config.method) !== 'get') {
+            _.unset(targetConfig, 'params')
+        }
+
         const startTime = Date.now()
 
         try {

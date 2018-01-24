@@ -170,7 +170,12 @@ export default class Kernel {
 
     _initEnv() {
         const envs = [ 'local', 'development', 'test', 'production' ]
-        const env = process.env.NODE_ENV || 'productions'
+        const env = process.env.NODE_ENV
+
+        if (!~envs.indexOf(env)) {
+            console.log(`NODE_ENV not in ${JSON.stringify(envs)}`)
+            throw new IException({ message: `NODE_ENV not in ${JSON.stringify(envs)}` })
+        }
 
         this._env = env
     }
