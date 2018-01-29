@@ -6,8 +6,5 @@
 
 import IClass from './IClass'
 
-export default class Service extends IClass {
-    success(res={}) {
-        return res.code === 0
-    }
+export default class extends IClass {
 }

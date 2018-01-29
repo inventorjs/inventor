@@ -4,7 +4,7 @@
  * @author : sunkeysun
  */
 
-export default class IException extends Error {
+export default class extends Error {
     constructor(e) {
         super()
 

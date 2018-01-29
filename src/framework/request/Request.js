@@ -5,12 +5,15 @@
  */
 
 import axios from 'axios'
+
 import IClass from '../support/base/IClass'
-import { autobind } from 'core-decorators'
+
+const CancelToken = axios.CancelToken
 
 export default class extends IClass {
     _config = {
         logRequest: true,
+        autoUA: false,
     }
 
     _defaultConfig = {
@@ -18,9 +21,7 @@ export default class extends IClass {
         method: '',
         params: {},
         data: {},
-        headers: {
-            'X-POWERED-BY': `${app().version}`
-        },
+        headers: {},
         withCredentials: true,
         responseType: 'json',
         xsrfCookieName: 'XSRF-TOKEN',
@@ -33,62 +34,65 @@ export default class extends IClass {
         httpResponse: false,
     }
 
-    constructor(config) {
+    _raceMap = {}
+
+    constructor(config={}) {
         super()
 
-        this._config = _.extend({}, this._config, config)
+        this._config = { ...this._config, ...config }
     }
 
-    @autobind
-    get(url, data, config) {
-        const targetConfig = _.extend({}, config, {
+    get(url, data, config={}) {
+        const targetConfig = {
+            ...config,
             method: 'get',
             url: url,
             params: data,
-        })
+        }
 
         return this._send(targetConfig)
     }
 
-    @autobind
-    post(url, data, config) {
-        const targetConfig = _.extend({}, config, {
+    post(url, data, config={}) {
+        const targetConfig = {
+            ...config,
             method: 'post',
             url: url,
             data: data,
-        })
+        }
 
         return this._send(targetConfig)
     }
 
-    @autobind
-    put(url, data, config) {
-        const targetConfig = _.extend({}, config, {
+    put(url, data, config={}) {
+        const targetConfig = {
+            ...config,
             method: 'put',
             url: url,
             data: data,
-        })
+        }
 
         return this._send(targetConfig)
     }
 
-    @autobind
-    delete(url, config) {
-        const targetConfig = _.extend({}, config, {
+    delete(url, data, config={}) {
+        const targetConfig = {
+            ...config,
             method: 'delete',
             url: url,
-        })
+            params: data,
+        }
 
         return this._send(targetConfig)
     }
 
-    @autobind
-    patch(url, data, config) {
-        const targetConfig = _.extend({}, config, {
+    patch(url, data, config={}) {
+        const targetConfig = {
+            ...config,
             method: 'patch',
             url: url,
             data: data,
-        })
+        }
 
         return this._send(targetConfig)
     }
@@ -148,25 +152,50 @@ export default class extends IClass {
             targetConfig.headers = { ...this._defaultConfig.headers, ...targetConfig.headers }
         }
 
-        if (_.toLower(config.method) !== 'get') {
+        if (!this._config.autoUA) {
+            targetConfig.headers['user-agent'] = app().version
+        }
+
+        if (!~['get', 'delete'].indexOf(_.toLower(config.method))) {
             _.unset(targetConfig, 'params')
+        }
+
+        const cancelSource = CancelToken.source()
+
+        targetConfig.cancelToken = cancelSource.token
+
+        const raceKey = config.raceKey
+        if (raceKey) {
+            if (this.raceMap[raceKey]) {
+                this.raceMap[raceKey].cancel()
+            } else {
+                this.raceMap[raceKey] = cancelSource
+            }
         }
 
         const startTime = Date.now()
 
         try {
             const res = await axios.request(targetConfig)
-            const timeCost = Date.now() - startTime
-            this._logInfo(res, timeCost)
+            if (raceKey && this.raceMap[raceKey]) {
+                this.raceMap[raceKey] = null
+            }
 
-            if (!!customConfig.httpResponse) {
+            const timeCost = Date.now() - startTime
+            // this._logInfo(res, timeCost)
+
+            if (customConfig.httpResponse) {
                 return _.pick(res, ['status', 'statusText', 'headers', 'data'])
             } else {
                 return res.data
             }
         } catch(e) {
+            if (raceKey && this.raceMap[raceKey]) {
+                this.raceMap[raceKey] = null
+            }
+
             const timeCost = Date.now() - startTime
-            this._logInfo(e, timeCost)
+            // this._logInfo(e, timeCost)
 
             throw new IException(e)
         }

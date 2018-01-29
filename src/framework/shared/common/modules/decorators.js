@@ -1,26 +1,29 @@
 /**
- * 修饰器集合
+ * 装饰器集合
  *
  * @author : sunkeysun
  */
 
 export function interfaceModel(interfaceConfig) {
-    return (target, key, descriptor) => {
-        if (_.isUndefined(target.prototype.packData)) {
-            target.prototype.packData = (data) => {
+    return (Target, key, descriptor) => {
+        const url = interfaceConfig.url
+
+        if (_.isUndefined(Target._packData)) {
+            Target._packData = function(data, apiData) {
                 return data
             }
         }
 
-        if (_.isUndefined(target.prototype.packOptions)) {
-            target.prototype.packOptions = (options) => {
-                return options
+        if (_.isUndefined(Target.success)) {
+            Target.success = function(res) {
+                return res.code === 0
             }
         }
 
-        target.prototype.sendRequest = (apiName, data={}, options={}) => {
-            const url = interfaceConfig.url
+        Target.__sendRequest = function(apiName, data={}, options={}) {
             const apiConfig = interfaceConfig.api[apiName]
+            const packedData = this._packData(data, apiConfig.data)
+
             let apiUrl = `${url}${apiConfig.path}`
             const params = _.get(options, 'params', {})
 
@@ -28,15 +31,13 @@ export function interfaceModel(interfaceConfig) {
                 apiUrl = apiUrl.replace(`:${key}`, val)
             })
 
-            return app().request[apiConfig.method](apiUrl, data, options)
+            return app().request[apiConfig.method](apiUrl, packedData, options)
         }
 
-        _.forOwn(interfaceConfig.api, (api, apiName) => {
-            if (_.isUndefined(target.prototype[apiName])) {
-                target.prototype[apiName] = (data={}, options={}) => {
-                    const packedData = target.prototype.packData(data)
-                    const packedOptions = target.prototype.packOptions(options)
-                    return target.prototype.sendRequest(apiName, packedData, packedOptions)
+        _.forOwn(interfaceConfig.api, (apiConfig, apiName) => {
+            if (_.isUndefined(Target[apiName])) {
+                Target[apiName] = function(data={}, options={}) {
+                    return this.__sendRequest(apiName, data, options)
                 }
             }
         })
