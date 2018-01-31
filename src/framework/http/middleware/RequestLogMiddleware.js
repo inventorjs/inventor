@@ -13,10 +13,11 @@ export default async function (ctx, next) {
     const timeCost = endTime - startTime
 
     let body = ctx.response.body
-    try {
-        body = JSON.parse(body)
-    } catch (e) {}
-
+    if (_.isString(body)) {
+        try {
+            body = JSON.parse(body)
+        } catch (e) {}
+    }
 
     const logInfo = JSON.stringify({
         '[[WebRequest]]': _.pick(ctx.request, ['url', 'method', 'header', 'body']),

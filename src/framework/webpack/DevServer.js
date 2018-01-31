@@ -36,6 +36,9 @@ export default class DevServer {
                 'Access-Control-Allow-Origin': `http://${webServer.host}:${webServer.port}`,
                 'Access-Control-Allow-Credentials': true,
             },
+            watchOptions: {
+                ignored: /node_modules/,
+            },
         })
 
         this._serverConfig = serverConfig

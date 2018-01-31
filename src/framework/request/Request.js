@@ -24,8 +24,8 @@ export default class extends IClass {
         headers: {},
         withCredentials: true,
         responseType: 'json',
-        xsrfCookieName: 'XSRF-TOKEN',
-        xsrfHeaderName: 'X-XSRF-TOKEN',
+        xsrfCookieName: 'csrf-token',
+        xsrfHeaderName: 'x-csrf-token',
         maxContentLength: 10 * 1024 * 1024,
         timeout: 10 * 1000,
     }
@@ -120,6 +120,7 @@ export default class extends IClass {
         }
 
         let data = res.config.data
+
         if (_.isString(_.get(res, 'config.data'))) {
             try {
                 data = JSON.parse(res.config.data)
@@ -129,7 +130,7 @@ export default class extends IClass {
 
         let logLevel = 'info'
         let response = res
-        if (!!_.isError(response)) {
+        if (_.isError(response)) {
             logLevel = 'error'
             if (!_.isUndefined(res.response)) {
                 response = res.response
@@ -182,7 +183,7 @@ export default class extends IClass {
             }
 
             const timeCost = Date.now() - startTime
-            // this._logInfo(res, timeCost)
+            this._logInfo(res, timeCost)
 
             if (customConfig.httpResponse) {
                 return _.pick(res, ['status', 'statusText', 'headers', 'data'])
@@ -195,7 +196,7 @@ export default class extends IClass {
             }
 
             const timeCost = Date.now() - startTime
-            // this._logInfo(e, timeCost)
+            this._logInfo(e, timeCost)
 
             throw new IException(e)
         }

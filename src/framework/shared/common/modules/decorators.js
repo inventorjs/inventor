@@ -20,9 +20,11 @@ export function interfaceModel(interfaceConfig) {
             }
         }
 
-        Target.__sendRequest = function(apiName, data={}, options={}) {
-            const apiConfig = interfaceConfig.api[apiName]
+        Target.__sendRequest = function(apiConfig, data={}, options={}) {
             const packedData = this._packData(data, apiConfig.data)
+            const apiOptions = _.get(apiConfig, 'options', {})
+            const moduleOptions = _.get(interfaceConfig, 'options', {})
+            const packedOptions = _.merge(moduleOptions, apiOptions, options)
 
             let apiUrl = `${url}${apiConfig.path}`
             const params = _.get(options, 'params', {})
@@ -31,13 +33,13 @@ export function interfaceModel(interfaceConfig) {
                 apiUrl = apiUrl.replace(`:${key}`, val)
             })
 
-            return app().request[apiConfig.method](apiUrl, packedData, options)
+            return app().request[apiConfig.method](apiUrl, packedData, packedOptions)
         }
 
         _.forOwn(interfaceConfig.api, (apiConfig, apiName) => {
             if (_.isUndefined(Target[apiName])) {
                 Target[apiName] = function(data={}, options={}) {
-                    return this.__sendRequest(apiName, data, options)
+                    return this.__sendRequest(apiConfig, data, options)
                 }
             }
         })

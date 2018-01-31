@@ -100,6 +100,15 @@ export default class WebpackConfigure {
                         }),
                     },
                     {
+                        test: /(vendor|node_module).*?\.css$/,
+                        use: ExtractTextPlugin.extract({
+                            fallback: 'style-loader',
+                            use: [
+                                'css-loader',
+                            ],
+                        }),
+                    },
+                    {
                         test: /\.scss$/,
                         exclude: /(node_modules|vendor)/,
                         use: ExtractTextPlugin.extract({
