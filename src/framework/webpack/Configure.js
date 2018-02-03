@@ -15,11 +15,15 @@ import UglifyJsPlugin from 'uglifyjs-webpack-plugin'
 import autoprefixer from 'autoprefixer'
 import OptimizeCssAssetsPlugin from 'optimize-css-assets-webpack-plugin'
 import ProgressBarPlugin from 'progress-bar-webpack-plugin'
+import WebpackChunkHash from 'webpack-chunk-hash'
+import InlineManifestPlugin from 'inline-chunk-manifest-html-webpack-plugin'
+import FileManagerPlugin from 'filemanager-webpack-plugin'
 
 export default class WebpackConfigure {
     _basePath = ''
     _buildMode = ''
     _publicPath = ''
+    _devServer = false
 
     _defaultVendor = [
         'babel-polyfill',
@@ -37,14 +41,11 @@ export default class WebpackConfigure {
         'core-decorators',
     ]
 
-    constructor({ basePath, publicPath, buildMode='release' }) {
+    constructor({ basePath, publicPath, buildMode='release', devServer=false }) {
         this._basePath = basePath
         this._buildMode = buildMode === 'release' ? 'release' : 'debug'
         this._publicPath = publicPath + '/'
-    }
-
-    get viewsPath() {
-        return `${this._basePath}/server/views`
+        this._devServer = devServer
     }
 
     get webPath() {
@@ -72,12 +73,15 @@ export default class WebpackConfigure {
     }
 
     _template(name, entry, plugins=[]) {
+        const outputPath = `${this.buildPath}/web/${this.buildMode}`
+        const manifestName = '__manifest.json'
+
         let webpackConfig = {
             name: name,
             entry: entry,
             output: {
                 filename: this._ifRelease('[name].[chunkhash].js', '[name].js'),
-                path: `${this.buildPath}/web/${this.buildMode}/`,
+                path: outputPath,
                 publicPath: this._publicPath,
             },
             module: {
@@ -146,8 +150,14 @@ export default class WebpackConfigure {
                 new webpack.DefinePlugin({
                     'process.env.NODE_ENV': this._ifRelease(JSON.stringify('production'), JSON.stringify('development')),
                 }),
+                new webpack.HashedModuleIdsPlugin(),
+                new WebpackChunkHash(),
+                new InlineManifestPlugin({
+                    filename: manifestName,
+                    manifestVariable: '__WEBPACK_MANIFEST__',
+                }),
                 new ExtractTextPlugin(
-                    this._ifRelease('[name].[chunkhash].css', '[name].css'),
+                    this._ifRelease('[name].[md5:contenthash:hex:20].css', '[name].css'),
                     {
                         allChunks: true,
                     }
@@ -171,13 +181,12 @@ export default class WebpackConfigure {
 
         webpackConfig.plugins = webpackConfig.plugins.concat(plugins)
 
-        if (this._ifRelease('release') === 'release') {
-            webpackConfig.plugins.push(
-                new UglifyJsPlugin({
-                    exclude: /\/node_modules\/html\-webpack\-plugin\/lib\/loader\.js/,
-                    parallel: true,
-                })
-            )
+        if (this._ifRelease('release', 'debug') === 'release') {
+            // webpackConfig.plugins.push(
+            //     new UglifyJsPlugin({
+            //         parallel: true,
+            //     })
+            // )
             webpackConfig.plugins.push(
                 new OptimizeCssAssetsPlugin({
                     assetNameRegExp: /\.css$/g,
@@ -189,7 +198,18 @@ export default class WebpackConfigure {
             webpackConfig.plugins.unshift(new ProgressBarPlugin())
         } else {
             webpackConfig.plugins.push(new webpack.HotModuleReplacementPlugin())
-            webpackConfig.plugins.push(new webpack.NamedModulesPlugin())
+        }
+
+        if (!this._devServer) {
+            webpackConfig.plugins.push(
+                new FileManagerPlugin({
+                    onEnd: {
+                        move: [
+                            { source: `${outputPath}/${manifestName}`, destination: `${this.sharedPath}/${manifestName}` },
+                        ],
+                    },
+                }),
+            )
         }
 
         return webpackConfig
@@ -240,9 +260,6 @@ export default class WebpackConfigure {
 
     _getCommonConfig() {
         const commonConfig = require(`${this.configPath}/common`).default
-        if (!commonConfig.build) {
-            return {}
-        }
 
         let entry = {}
         let plugins = []
@@ -271,9 +288,6 @@ export default class WebpackConfigure {
 
     _getVendorConfig() {
         const vendorConfig = require(`${this.configPath}/vendor`).default
-        if (!vendorConfig.build) {
-            return {}
-        }
 
         let entry = {}
         let plugins = []
