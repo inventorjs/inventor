@@ -81,12 +81,8 @@ export default class Router extends IClass {
     }
 
     _getMiddlewareHandlers(middleware=[]) {
-        const middlewareHandlers = _.map(middleware, (middlewareName) => {
-            const middlewareHandler = app().middlewareMap[middlewareName]
-            if (!middlewareHandler) {
-                throw new IException(`Middleware ${middlewareName} not defined`)
-            }
-            return normalizeMiddleware(middlewareHandler)
+        const middlewareHandlers = _.map(middleware, (Middleware) => {
+            return normalizeMiddleware(Middleware.handle.bind(Middleware))
         })
 
         return middlewareHandlers
@@ -105,8 +101,8 @@ export default class Router extends IClass {
         const route = new Route(handler)
 
         let routeArgs = [ routePath ]
-        const middleware = _.uniq(_.get(this._options, 'middleware', []).concat(_.get(options, 'middleware', [])))
-        const middlewareHandlers = this._getMiddlewareHandlers(middleware)
+        const middlewares = _.uniq(_.get(this._options, 'middlewares', []).concat(_.get(options, 'middleware', [])))
+        const middlewareHandlers = this._getMiddlewareHandlers(middlewares)
         routeArgs = routeArgs.concat(middlewareHandlers)
 
         function handleRouteError(e, ctx) {

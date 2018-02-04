@@ -9,6 +9,7 @@ import moment from 'moment'
 import CoreApp from 'koa'
 import coreBody from 'koa-body'
 
+import IClass from '../support/base/IClass'
 import IException from '../support/base/IException'
 import LogProvider from '../log/LogProvider'
 import RedisProvider from '../redis/RedisProvider'
@@ -20,7 +21,7 @@ import RouteMiddleware from './middleware/RouteMiddleware'
 import { config } from '../support/helpers'
 import version from '../version'
 
-export default class Kernel {
+export default class Kernel extends IClass {
     __coreApp = new CoreApp()
     __basePath = ''
     __logger = null
@@ -32,9 +33,9 @@ export default class Kernel {
 
     __appConfig = {}
 
-    _middlewareMap = {}
-
     constructor(basePath) {
+        super()
+
         this.__basePath = basePath
         this.__registerGlobal()
         this.__initEnv()
@@ -160,7 +161,7 @@ export default class Kernel {
     }
 
     __initBaseMiddleware() {
-        this.__coreApp.use(coreBody())
+        this.__coreApp.use(coreBody({ multipart: true }))
         this.__coreApp.use(RequestLogMiddleware)
         this.__coreApp.use(RouteMiddleware)
     }

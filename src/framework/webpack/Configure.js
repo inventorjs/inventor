@@ -16,7 +16,7 @@ import autoprefixer from 'autoprefixer'
 import OptimizeCssAssetsPlugin from 'optimize-css-assets-webpack-plugin'
 import ProgressBarPlugin from 'progress-bar-webpack-plugin'
 import WebpackChunkHash from 'webpack-chunk-hash'
-import InlineManifestPlugin from 'inline-chunk-manifest-html-webpack-plugin'
+import InlineChunkManifestPlugin from 'inline-chunk-manifest-html-webpack-plugin'
 import FileManagerPlugin from 'filemanager-webpack-plugin'
 
 export default class WebpackConfigure {
@@ -39,6 +39,8 @@ export default class WebpackConfigure {
         'redux',
         'react-redux',
         'core-decorators',
+        'inventor/web',
+        'inventor/shared',
     ]
 
     constructor({ basePath, publicPath, buildMode='release', devServer=false }) {
@@ -152,7 +154,7 @@ export default class WebpackConfigure {
                 }),
                 new webpack.HashedModuleIdsPlugin(),
                 new WebpackChunkHash(),
-                new InlineManifestPlugin({
+                new InlineChunkManifestPlugin({
                     filename: manifestName,
                     manifestVariable: '__WEBPACK_MANIFEST__',
                 }),
@@ -182,11 +184,11 @@ export default class WebpackConfigure {
         webpackConfig.plugins = webpackConfig.plugins.concat(plugins)
 
         if (this._ifRelease('release', 'debug') === 'release') {
-            // webpackConfig.plugins.push(
-            //     new UglifyJsPlugin({
-            //         parallel: true,
-            //     })
-            // )
+            webpackConfig.plugins.push(
+                new UglifyJsPlugin({
+                    parallel: true,
+                })
+            )
             webpackConfig.plugins.push(
                 new OptimizeCssAssetsPlugin({
                     assetNameRegExp: /\.css$/g,

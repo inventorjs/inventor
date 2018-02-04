@@ -84,21 +84,20 @@ export default class Response extends IClass {
         return this.renderError(403)
     }
 
-    renderError(code, preloadedState={}) {
-        const appPath = `${app().sharedPath}/apps/common/errors/${code}`
+    renderError(code) {
+        const appPath = `${app().sharedPath}/apps/common`
         const appName = 'common'
 
+        const initialState = {
+            error: { code },
+        }
+
         try {
-            const App = require(appPath).default
-            return this._render({ appPath, appName, preloadedState })
+            return this._render({ appPath, appName, initialState })
         } catch(e) {
             app().logger.error(e)
             return this.status(code).send('')
         }
-    }
-
-    _renderAppContent(appPath, initialState={}) {
-
     }
 
     _render({ appPath, appName='', initialState={} }) {
