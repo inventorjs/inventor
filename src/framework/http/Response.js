@@ -72,6 +72,11 @@ export default class Response extends IClass {
         return this
     }
 
+    redirect(url) {
+        this._ctx.redirect(url)
+        return this
+    }
+
     render404() {
         return this.renderError(404)
     }

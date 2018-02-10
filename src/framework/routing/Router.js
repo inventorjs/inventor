@@ -108,7 +108,7 @@ export default class Router extends IClass {
         function handleRouteError(e, ctx) {
             app().logger.error(e)
 
-            if (ctx.iRequest.path.startsWith('/api/')) {
+            if (ctx.iRequest.headers['x-async-request']) {
                 return ctx.iResponse.json(e)
             } else {
                 return ctx.iResponse.render500()

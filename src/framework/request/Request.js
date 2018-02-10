@@ -5,6 +5,7 @@
  */
 
 import axios from 'axios'
+import uuid from 'uuid/v1'
 
 import IClass from '../support/base/IClass'
 
@@ -14,6 +15,7 @@ export default class extends IClass {
     _config = {
         logRequest: true,
         autoUA: false,
+        injectSeq: false,
     }
 
     _defaultConfig = {
@@ -21,13 +23,16 @@ export default class extends IClass {
         method: '',
         params: {},
         data: {},
-        headers: {},
+        headers: {
+            'X-Async-Request': true,
+        },
         withCredentials: true,
         responseType: 'json',
-        xsrfCookieName: 'csrf-token',
-        xsrfHeaderName: 'x-csrf-token',
+        xsrfCookieName: 'CSRF-TOKEN',
+        xsrfHeaderName: 'X-Csrf-Token',
         maxContentLength: 10 * 1024 * 1024,
         timeout: 10 * 1000,
+        maxRedirects: 0,
     }
 
     _defaultCustomConfig = {
@@ -150,11 +155,15 @@ export default class extends IClass {
         const customConfig = { ...this._defaultCustomConfig, ..._.pick(config, _.keys(this._defaultCustomConfig)) }
 
         if (targetConfig.headers) {
-            targetConfig.headers = { ...this._defaultConfig.headers, ...targetConfig.headers }
+            targetConfig.headers = _.defaults(this._defaultConfig.headers, targetConfig.headers)
         }
 
         if (!this._config.autoUA) {
-            targetConfig.headers['user-agent'] = app().version
+            targetConfig.headers['User-Agent'] = app().version
+        }
+
+        if (this._config.injectSeq) {
+            targetConfig.headers['X-Request-Seq'] = uuid()
         }
 
         if (!~['get', 'delete'].indexOf(_.toLower(config.method))) {

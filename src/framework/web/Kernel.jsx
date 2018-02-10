@@ -50,7 +50,7 @@ export default class Kernel {
     }
 
     _registerBaseProviders() {
-        this._request = (new RequestProvider()).register({ logRequest: false, autoUA: true })
+        this._request = (new RequestProvider()).register({ logRequest: false, autoUA: true, injectSeq: true })
     }
 
     _registerGlobal() {

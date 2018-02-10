@@ -20,6 +20,12 @@ export function interfaceModel(interfaceConfig) {
             }
         }
 
+        if (_.isUndefined(Target._beforeResponse)) {
+            Target._beforeResponse = function(res) {
+                return res
+            }
+        }
+
         Target.__sendRequest = function(apiConfig, data={}, options={}) {
             const packedData = this._packData(data, apiConfig.data)
             const apiOptions = _.get(apiConfig, 'options', {})
@@ -40,6 +46,7 @@ export function interfaceModel(interfaceConfig) {
             if (_.isUndefined(Target[apiName])) {
                 Target[apiName] = function(data={}, options={}) {
                     return this.__sendRequest(apiConfig, data, options)
+                                .then(this._beforeResponse)
                 }
             }
         })
