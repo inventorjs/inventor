@@ -26,11 +26,13 @@ export default class Kernel {
     _webpackConfig = ''
     _App = null
     _reducers = {}
+    _appConfig = {}
 
-    constructor({ webpackConfig, App, reducers }) {
+    constructor({ webpackConfig, appConfig, App, reducers }) {
         this._webpackConfig = webpackConfig
         this._App = App
         this._reducers = reducers
+        this._appConfig = appConfig
 
         this._registerGlobal()
     }
@@ -49,8 +51,15 @@ export default class Kernel {
         }
     }
 
+    get appConfig() {
+        return this._appConfig
+    }
+
     _registerBaseProviders() {
-        this._request = (new RequestProvider()).register({ logRequest: false, autoUA: true, injectSeq: true })
+        const seqHeader = this.appConfig.requestSeqHeader
+        const logRequest = false
+        const autoUA = true
+        this._request = (new RequestProvider()).register({ logRequest, autoUA, seqHeader })
     }
 
     _registerGlobal() {

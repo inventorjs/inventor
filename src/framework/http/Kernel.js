@@ -121,6 +121,17 @@ export default class Kernel extends IClass {
         return config(configName)
     }
 
+    sharedConfig(configName) {
+        const configPath = `${this.sharedPath}/common/config/${configName}`
+        let config = {}
+
+        try {
+            config = require(configPath).default
+        } catch(e) {}
+
+        return config
+    }
+
     model(modelName) {
         const classPath = `${this.modelsPath}/${modelName}`
         return this.singleton(classPath)

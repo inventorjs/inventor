@@ -15,7 +15,7 @@ export default class extends IClass {
     _config = {
         logRequest: true,
         autoUA: false,
-        injectSeq: false,
+        seqHeader: false,
     }
 
     _defaultConfig = {
@@ -155,15 +155,15 @@ export default class extends IClass {
         const customConfig = { ...this._defaultCustomConfig, ..._.pick(config, _.keys(this._defaultCustomConfig)) }
 
         if (targetConfig.headers) {
-            targetConfig.headers = _.defaults(this._defaultConfig.headers, targetConfig.headers)
+            targetConfig.headers = _.defaults({}, this._defaultConfig.headers, targetConfig.headers)
         }
 
         if (!this._config.autoUA) {
             targetConfig.headers['User-Agent'] = app().version
         }
 
-        if (this._config.injectSeq) {
-            targetConfig.headers['X-Request-Seq'] = uuid()
+        if (this._config.seqHeader) {
+            targetConfig.headers[this._config.seqHeader] = uuid()
         }
 
         if (!~['get', 'delete'].indexOf(_.toLower(config.method))) {
