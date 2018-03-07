@@ -26,7 +26,8 @@ export function interfaceModel(interfaceConfig) {
             const moduleOptions = _.get(interfaceConfig, 'options', {})
             const packedOptions = _.merge({}, moduleOptions, apiOptions, options)
 
-            let apiUrl = `${url}${apiConfig.path}`
+            const path = _.get(apiConfig, 'path', '')
+            let apiUrl = `${url}${path}`
             const params = _.get(options, 'params', {})
 
             _.forOwn(params, (val, key) => {
