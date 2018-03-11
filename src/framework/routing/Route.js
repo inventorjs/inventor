@@ -8,18 +8,37 @@ import IClass from '../support/base/IClass'
 
 export default class Route extends IClass {
     _handler = null
-    _type = 'callback'
-    _action = ''
+    _path = ''
+    _locals = {}
+    _middlewares=[]
 
-    constructor(handler) {
+    get path() {
+        return this._path
+    }
+
+    get locals() {
+        return this._locals
+    }
+
+    get middlewares() {
+        return this._middlewares
+    }
+
+    get handler() {
+        return this._handler
+    }
+
+    constructor({ path: routePath, handler, middlewares, locals }) {
         super()
 
-        if (!!_.isFunction(handler)) {
-            this._handler = handler
-            this._type = 'callback'
-        } else if (!!_.isString(handler)) {
+        this._path = routePath
+        this._handler = handler
+        this._middlewares = middlewares
+        this._locals = locals
+
+        if (_.isString(handler)) {
             if (!~handler.indexOf('@')) {
-                throw new IException('action not exist.')
+                throw new IException(`route handler string must like {controller}@{action}, now is ${handler}`)
             }
             const handlerArr = handler.split('@')
             const controllerName = handlerArr[0]
@@ -32,12 +51,11 @@ export default class Route extends IClass {
                 controller: Controller,
                 action: actionName,
             }
-            this._type = 'controller'
         }
     }
 
     handle(request, response) {
-        if (this._type === 'callback') {
+        if (_.isFunction(this._handler)) {
             return this._handler.apply(null, [request, response])
         } else {
             const Controller = this._handler.controller
@@ -45,7 +63,7 @@ export default class Route extends IClass {
             const controllerInstance = new Controller(request, response)
 
             if (!_.isFunction(controllerInstance[actionName])) {
-                throw new IException('action not a function.')
+                throw new IException(`action (${actionName}) function not defined`)
             }
 
             return controllerInstance[actionName]()

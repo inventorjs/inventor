@@ -15,7 +15,10 @@ import { normalizeMiddleware } from '../support/helpers'
 
 export default class Router extends IClass {
     _routePath = ''
-    _options={}
+    _options={
+        middlewares: [],
+        locals: {},
+    }
     _coreRouter = new CoreRouter()
 
     get routePath() {
@@ -63,13 +66,16 @@ export default class Router extends IClass {
         this.get(`${resource}/:id`, `${controller}@query`)
     }
 
-    group(prefix, handler, options) {
+    group(prefix, handler, { middlewares=[], locals={} }={}) {
         const prePrefix = this._routePath
         const routePath = `${prePrefix}${prefix}`
         const groupRouter = _.clone(this)
 
         groupRouter.routePath = routePath
-        groupRouter.options = _.extend({}, this._options, options)
+        groupRouter.options = {
+            middlewares: _.uniq([ ...groupRouter._options.middlewares, ...middlewares ]),
+            locals: { ...groupRouter._options.locals, ...locals },
+        }
 
         handler(groupRouter)
 
@@ -88,22 +94,26 @@ export default class Router extends IClass {
         return middlewareHandlers
     }
 
-    _handle(method, routePath, handler, options) {
-        const preRoutePath = _.get(this, 'routePath', '')
+    _handle(method, routePath, handler, { middlewares=[], locals=[] }={}) {
+        const prefix = _.get(this, 'routePath', '')
         if (_.isArray(routePath)) {
             routePath = _.map(routePath, (routePathItem) => {
-                return path.normalize(`${preRoutePath}${routePathItem}`)
+                return path.normalize(`${prefix}${routePathItem}`)
             })
         } else {
-            routePath = path.normalize(`${preRoutePath}${routePath}`)
+            routePath = path.normalize(`${prefix}${routePath}`)
         }
 
-        const route = new Route(handler)
+        const allLocals = { ...this._options.locals, ...locals }
+        const allMiddlewares = _.uniq([ ...this._options.middlewares, ...middlewares])
+        const middlewareHandlers = this._getMiddlewareHandlers(allMiddlewares)
 
-        let routeArgs = [ routePath ]
-        const middlewares = _.uniq(_.get(this._options, 'middlewares', []).concat(_.get(options, 'middleware', [])))
-        const middlewareHandlers = this._getMiddlewareHandlers(middlewares)
-        routeArgs = routeArgs.concat(middlewareHandlers)
+        const route = new Route({
+            handler,
+            path: routePath,
+            middlewares: middlewareHandlers,
+            locals: allLocals,
+        })
 
         function handleRouteError(e, ctx) {
             app().logger.error(e)
@@ -129,7 +139,12 @@ export default class Router extends IClass {
             }
         }
 
-        routeArgs.push(routeHandler)
+        const routeMiddleware = async (ctx, next) => {
+            ctx.iRequest.route = route;
+            await next()
+        }
+
+        const routeArgs = [ route.path, routeMiddleware, ...route.middlewares, routeHandler]
 
         this._coreRouter[method].apply(this._coreRouter, routeArgs)
 

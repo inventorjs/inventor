@@ -37,6 +37,8 @@ export default class extends IClass {
 
     _defaultCustomConfig = {
         httpResponse: false,
+        requestInterceptors: [],
+        responseInterceptors: [],
     }
 
     _raceMap = {}
@@ -184,21 +186,40 @@ export default class extends IClass {
         }
 
         const startTime = Date.now()
+        const instance = axios.create()
 
-        try {
-            const res = await axios.request(targetConfig)
+        instance.interceptors.request.use((request) => {
+            return request
+        })
+
+        instance.interceptors.response.use((response) => {
             if (raceKey && this.raceMap[raceKey]) {
                 this.raceMap[raceKey] = null
             }
 
             const timeCost = Date.now() - startTime
-            this._logInfo(res, timeCost)
+            this._logInfo(response, timeCost)
 
             if (customConfig.httpResponse) {
-                return _.pick(res, ['status', 'statusText', 'headers', 'data'])
+                return _.pick(response, ['status', 'statusText', 'headers', 'data'])
             } else {
-                return res.data
+                return response.data
             }
+        })
+
+        if (_.get(customConfig.requestInterceptors, 'length')) {
+            _.each(customConfig.requestInterceptors,
+                (interceptor) => instance.interceptors.request.use(interceptor))
+        }
+
+        if (_.get(customConfig.responseInterceptors, 'length')) {
+            _.each(customConfig.responseInterceptors,
+                (interceptor) => instance.interceptors.response.use(interceptor))
+        }
+
+        try {
+            const res = await instance.request(targetConfig)
+            return res
         } catch(e) {
             if (raceKey && this.raceMap[raceKey]) {
                 this.raceMap[raceKey] = null

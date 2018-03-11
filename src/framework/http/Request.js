@@ -9,7 +9,7 @@ import { extendObject } from '../shared/common/modules/utils'
 
 export default class Request extends IClass {
     _ctx = null
-
+    _route = null
     _locals = {}
 
     constructor(ctx) {
@@ -20,6 +20,14 @@ export default class Request extends IClass {
 
     get locals() {
         return this._locals
+    }
+
+    get route() {
+        return this._route
+    }
+
+    set route(route) {
+        this._route = route
     }
 
     get session() {
