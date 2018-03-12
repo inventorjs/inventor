@@ -58,12 +58,12 @@ export default class Router extends IClass {
         return this._handle(...args)
     }
 
-    resource(resource, controller) {
-        this.post(`${resource}`, `${controller}@add`)
-        this.delete(`${resource}/:id`, `${controller}@remove`)
-        this.put(`${resource}/:id`, `${controller}@update`)
-        this.get(`${resource}`, `${controller}@list`)
-        this.get(`${resource}/:id`, `${controller}@query`)
+    resource(resource, controller, options) {
+        this.post(`${resource}`, `${controller}@add`, options)
+        this.delete(`${resource}/:id`, `${controller}@remove`, options)
+        this.put(`${resource}/:id`, `${controller}@update`, options)
+        this.get(`${resource}`, `${controller}@list`, options)
+        this.get(`${resource}/:id`, `${controller}@query`, options)
     }
 
     group(prefix, handler, { middlewares=[], locals={} }={}) {
@@ -94,7 +94,7 @@ export default class Router extends IClass {
         return middlewareHandlers
     }
 
-    _handle(method, routePath, handler, { middlewares=[], locals=[] }={}) {
+    _handle(method, routePath, handler, { middlewares=[], locals={} }={}) {
         const prefix = _.get(this, 'routePath', '')
         if (_.isArray(routePath)) {
             routePath = _.map(routePath, (routePathItem) => {
