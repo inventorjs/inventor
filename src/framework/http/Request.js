@@ -97,4 +97,8 @@ export default class Request extends IClass {
     get query() {
         return this._ctx.request.query
     }
+
+    isAsync() {
+        return !!this._ctx.request.headers['x-async-request']
+    }
 }

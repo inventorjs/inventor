@@ -77,24 +77,27 @@ export default class Response extends IClass {
         return this
     }
 
-    render404() {
-        return this.renderError(404)
+    render404(detail='') {
+        return this.renderError(404, detail)
     }
 
-    render500() {
-        return this.renderError(500)
+    render500(detail='') {
+        return this.renderError(500, detail)
     }
 
-    render403() {
-        return this.renderError(403)
+    render403(detail='') {
+        return this.renderError(403, detail)
     }
 
-    renderError(code) {
+    renderError(code, detail='') {
         const appPath = `${app().sharedPath}/apps/common`
         const appName = 'common'
 
         const initialState = {
-            error: { code },
+            error: {
+                code,
+                detail,
+            },
         }
 
         try {

@@ -13,13 +13,14 @@ import Request from '../http/Request'
 import Response from '../http/Response'
 import { normalizeMiddleware } from '../support/helpers'
 
+const coreRouter = new CoreRouter()
+
 export default class Router extends IClass {
     _routePath = ''
     _options={
         middlewares: [],
         locals: {},
     }
-    _coreRouter = new CoreRouter()
 
     get routePath() {
         return this._routePath
@@ -69,7 +70,7 @@ export default class Router extends IClass {
     group(prefix, handler, { middlewares=[], locals={} }={}) {
         const prePrefix = this._routePath
         const routePath = `${prePrefix}${prefix}`
-        const groupRouter = _.clone(this)
+        const groupRouter = _.cloneDeep(this)
 
         groupRouter.routePath = routePath
         groupRouter.options = {
@@ -83,11 +84,11 @@ export default class Router extends IClass {
     }
 
     routes() {
-        return this._coreRouter.routes()
+        return coreRouter.routes()
     }
 
-    _getMiddlewareHandlers(middleware=[]) {
-        const middlewareHandlers = _.map(middleware, (Middleware) => {
+    _getMiddlewareHandlers(middlewares=[]) {
+        const middlewareHandlers = _.map(middlewares, (Middleware) => {
             return normalizeMiddleware(Middleware.handle.bind(Middleware))
         })
 
@@ -118,7 +119,7 @@ export default class Router extends IClass {
         function handleRouteError(e, ctx) {
             app().logger.error(e)
 
-            if (ctx.iRequest.headers['x-async-request']) {
+            if (ctx.iRequest.isAsync()) {
                 return ctx.iResponse.json(e)
             } else {
                 return ctx.iResponse.render500()
@@ -146,7 +147,7 @@ export default class Router extends IClass {
 
         const routeArgs = [ route.path, routeMiddleware, ...route.middlewares, routeHandler]
 
-        this._coreRouter[method].apply(this._coreRouter, routeArgs)
+        coreRouter[method].apply(coreRouter, routeArgs)
 
         return this
     }
