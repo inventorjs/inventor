@@ -3,7 +3,10 @@
  *
  * @author : sunkeysun
  */
+
+import packageJson from '../package.json'
+
 export default {
-    name: 'Inventor',
-    version: '0.0.23',
+    name: packageJson.name,
+    version: packageJson.version,
 }

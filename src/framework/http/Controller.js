@@ -18,7 +18,7 @@ export default class Controller extends IClass{
 
         const requestSeqHeader = app().sharedConfig('app').requestSeqHeader
         if (requestSeqHeader && request.headers[_.toLower(requestSeqHeader)]) {
-            this.__options = {
+            this._options = {
                 headers: {
                     [requestSeqHeader]: request.headers[_.toLower(requestSeqHeader)],
                 },

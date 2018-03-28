@@ -27,6 +27,7 @@ export default class WebpackConfigure {
 
     _defaultVendor = [
         'babel-polyfill',
+        'query-string',
         'lodash',
         'moment',
         'axios',
@@ -235,7 +236,7 @@ export default class WebpackConfigure {
             if (!!appsConfig[appName].build) {
                 const config = _.extend({}, appsConfig.common, appsConfig[appName])
                 const outputName = `apps/${appName}/index`
-                const entryPath = path.resolve(this.webPath, `apps/${appName}.js`)
+                const entryPath = path.resolve(this.webPath, `apps/__${appName}.js`)
                 entry[outputName] = [ entryPath ]
 
                 plugins.push(

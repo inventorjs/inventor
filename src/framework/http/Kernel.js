@@ -22,25 +22,27 @@ import { config } from '../support/helpers'
 import version from '../version'
 
 export default class Kernel extends IClass {
-    __coreApp = new CoreApp()
-    __basePath = ''
-    __logger = null
-    __redis = null
-    __session = null
-    __env = ''
-    __singletons = {}
-    __booted = false
+    _coreApp = new CoreApp()
+    _basePath = ''
+    _logger = null
+    _redis = null
+    _session = null
+    _env = ''
+    _singletons = {}
+    _booted = false
 
-    __appConfig = {}
+    _appConfig = {}
+
+    isBrowser = false
 
     constructor(basePath) {
         super()
 
-        this.__basePath = basePath
-        this.__registerGlobal()
-        this.__initEnv()
-        this.__initApp()
-        this.__initBaseMiddleware()
+        this._basePath = basePath
+        this._registerGlobal()
+        this._initEnv()
+        this._initApp()
+        this._initBaseMiddleware()
     }
 
     get version() {
@@ -48,7 +50,7 @@ export default class Kernel extends IClass {
     }
 
     get basePath() {
-        return this.__basePath
+        return this._basePath
     }
 
     get configPath() {
@@ -102,19 +104,19 @@ export default class Kernel extends IClass {
     }
 
     get logger() {
-        return this.__logger
+        return this._logger
     }
 
     get redis() {
-        return this.__redis
+        return this._redis
     }
 
     get request() {
-        return this.__request
+        return this._request
     }
 
     get env() {
-        return this.__env
+        return this._env
     }
 
     config(configName) {
@@ -143,71 +145,71 @@ export default class Kernel extends IClass {
     }
 
     singleton(classPath, ...args) {
-        if (this.__singletons[classPath]) {
-            return this.__singletons[classPath]
+        if (this._singletons[classPath]) {
+            return this._singletons[classPath]
         }
 
         const Class = require(classPath).default
         const instance = new Class(...args)
-        this.__singletons[classPath] = instance
+        this._singletons[classPath] = instance
 
         return instance
     }
 
-    __initEnv() {
+    _initEnv() {
         const envs = [ 'local', 'development', 'test', 'production' ]
         const env = process.env.NODE_ENV
 
         if (!~envs.indexOf(env)) {
-            console.log(`NODE_ENV not in ${JSON.stringify(envs)}`)
+            console.error(`NODE_ENV not in ${JSON.stringify(envs)}`)
             throw new IException({ message: `NODE_ENV not in ${JSON.stringify(envs)}` })
         }
 
-        this.__env = env
+        this._env = env
     }
 
-    __initApp() {
-        this.__appConfig = this.config('app')
-        this.__coreApp.keys = this.config('app').keys
+    _initApp() {
+        this._appConfig = this.config('app')
+        this._coreApp.keys = this.config('app').keys
     }
 
-    __initBaseMiddleware() {
-        this.__coreApp.use(coreBody({ multipart: true }))
-        this.__coreApp.use(RequestLogMiddleware)
-        this.__coreApp.use(RouteMiddleware)
+    _initBaseMiddleware() {
+        // this._coreApp.use(coreBody({ multipart: true }))
+        // this._coreApp.use(RequestLogMiddleware)
+        this._coreApp.use(RouteMiddleware)
     }
 
-    __registerBaseProvider() {
-        this.__registerLogProvider()
-        this.__registerRedisProvider()
-        this.__registerSessionProvider()
-        this.__registerRoutingProvider()
-        this.__registerRequestProvider()
+    _registerBaseProvider() {
+        this._registerLogProvider()
+        this._registerRedisProvider()
+        this._registerSessionProvider()
+        this._registerRoutingProvider()
+        this._registerRequestProvider()
     }
 
-    __registerLogProvider() {
-        this.__logger = ( new LogProvider() ).register()
+    _registerLogProvider() {
+        this._logger = ( new LogProvider() ).register()
     }
 
-    __registerRedisProvider() {
-        this.__redis = ( new RedisProvider() ).register()
+    _registerRedisProvider() {
+        this._redis = ( new RedisProvider() ).register()
     }
 
-    __registerRoutingProvider() {
+    _registerRoutingProvider() {
         const routes = ( new RoutingProvider() ).register()
-        this.__coreApp.use(routes)
+        this._coreApp.use(routes)
     }
 
-    __registerSessionProvider() {
+    _registerSessionProvider() {
         const session = ( new SessionProvider() ).register()
-        this.__coreApp.use(session(this.__coreApp))
+        this._coreApp.use(session(this._coreApp))
     }
 
-    __registerRequestProvider() {
-        this.__request = ( new RequestProvider() ).register()
+    _registerRequestProvider() {
+        this._request = ( new RequestProvider() ).register()
     }
 
-    __registerGlobal() {
+    _registerGlobal() {
         lodash.extend(global, {
             IException,
             moment,
@@ -227,14 +229,14 @@ export default class Kernel extends IClass {
         if (!!this._booted) {
             throw new IException('Http kernel can\'t be rebooted.')
         }
-        this.__registerBaseProvider()
+        this._registerBaseProvider()
 
-        const { host, port } = this.__appConfig.server
+        const { host, port } = this._appConfig.server
 
-        this.__coreApp.listen(port, host)
+        this._coreApp.listen(port, host)
 
         this.logger.info(`Inventor server started on ${host}:${port}`)
 
-        this.__booted = true
+        this._booted = true
     }
 }

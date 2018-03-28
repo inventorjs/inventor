@@ -6,7 +6,7 @@
 
 import IClass from './IClass'
 
-export default class extends IClass {
+export default class Provider extends IClass {
     register() {
     }
 }

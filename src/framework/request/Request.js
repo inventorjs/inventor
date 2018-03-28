@@ -4,6 +4,7 @@
  * @author : sunkeysun
  */
 
+import qs from 'query-string'
 import axios from 'axios'
 import uuid from 'uuid/v1'
 
@@ -16,6 +17,14 @@ export default class extends IClass {
         logRequest: true,
         autoUA: false,
         seqHeader: false,
+    }
+
+    _jsonpCount = 10000
+
+    _jsonpConfig = {
+        timeout: 10000,
+        prefix: 'jsonp',
+        callback: 'callback',
     }
 
     _defaultConfig = {
@@ -104,6 +113,51 @@ export default class extends IClass {
         return this._send(targetConfig)
     }
 
+    jsonp(url, data={}, config={}) {
+        if (!app().isBrowser) {
+            throw new IException('jsonp only used in browser')
+        }
+
+        return new Promise((resolve, reject) => {
+            const targetConfig = { ...this._jsonpConfig, ..._.pick(config, _.keys(this._jsonpConfig)) }
+            const jsonpId = targetConfig.prefix + (++this._jsonpCount%_.toSafeInteger(_.pad('', 20, '9')))
+            let script = null
+
+            const realData = { ...data, [targetConfig.callback]: jsonpId }
+            const realUrl = url.split('?')[0] + '?' + qs.stringify(realData)
+            let timer = null
+
+            const cleanup = () => {
+                if (script) {
+                    document.body.removeChild(script)
+                    script = null
+                }
+                if (timer) {
+                    clearTimeout(timer)
+                    timer = null
+                }
+
+                global[jsonpId] = () => {
+                    return reject(new IException('jsonp has been cleanup'))
+                }
+            }
+
+            global[jsonpId] = (data) => {
+                cleanup()
+                resolve(data)
+            }
+
+            script  = document.createElement('script')
+            script.src = realUrl
+            document.body.append(script)
+
+            timer = setTimeout(() => {
+                cleanup()
+                return reject(new IException('jsonp response timeout'))
+            }, targetConfig.timeout)
+        })
+    }
+
     _normalizeHttp(obj) {
         return _.mapKeys(obj, (val, key) => {
             switch(key) {
@@ -126,7 +180,16 @@ export default class extends IClass {
             return false
         }
 
-        let data = res.config.data
+        let logLevel = 'info'
+        let response = res
+        let data = _.get(res, 'config.data', {})
+
+        if (_.isError(response)) {
+            logLevel = 'error'
+            if (!_.isUndefined(res.response)) {
+                response = res.response
+            }
+        }
 
         if (_.isString(_.get(res, 'config.data'))) {
             try {
@@ -135,14 +198,6 @@ export default class extends IClass {
             }
         }
 
-        let logLevel = 'info'
-        let response = res
-        if (_.isError(response)) {
-            logLevel = 'error'
-            if (!_.isUndefined(res.response)) {
-                response = res.response
-            }
-        }
         const logStr = JSON.stringify({
             '[[Request]]': this._normalizeHttp({ ..._.pick(_.get(res, 'config'), ['url', 'method', 'headers', 'params']), data }),
             '[[Response]]': this._normalizeHttp(_.pick(response, ['code', 'message', 'stack', 'status', 'statusText', 'headers', 'data'])),
@@ -205,16 +260,16 @@ export default class extends IClass {
             } else {
                 return response.data
             }
-        }, (e) => { throw e } )
+        }, (e) => { throw new IException(e) } )
 
         if (_.get(customConfig.requestInterceptors, 'length')) {
             _.each(customConfig.requestInterceptors,
-                (interceptor) => instance.interceptors.request.use(interceptor, (e) => { throw e } ))
+                (interceptor) => instance.interceptors.request.use(interceptor, (e) => { throw new IException(e) } ))
         }
 
         if (_.get(customConfig.responseInterceptors, 'length')) {
             _.each(customConfig.responseInterceptors,
-                (interceptor) => instance.interceptors.response.use(interceptor, (e) => { throw e } ))
+                (interceptor) => instance.interceptors.response.use(interceptor, (e) => { throw new IException(e) } ))
         }
 
         try {

@@ -6,5 +6,5 @@
 
 import IClass from './IClass'
 
-export default class extends IClass {
+export default class Driver extends IClass {
 }

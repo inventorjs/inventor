@@ -4,12 +4,16 @@
  * @author : sunkeysun
  */
 
-export default class extends Error {
+export default class IException extends Error {
     constructor(e) {
         super()
 
-        this.code = e.code
-        this.message = e.message
-        this.stack = e.stack
+        if (_.isString(e)) {
+            this.message = e
+        } else {
+            this.code = _.get(e, 'code')
+            this.message = _.get(e, 'message')
+            this.stack = _.get(e, 'stack')
+        }
     }
 }

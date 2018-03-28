@@ -28,6 +28,8 @@ export default class Kernel {
     _reducers = {}
     _appConfig = {}
 
+    isBrowser = true
+
     constructor({ webpackConfig, appConfig, App, reducers }) {
         this._webpackConfig = webpackConfig
         this._App = App
