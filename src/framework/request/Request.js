@@ -260,16 +260,16 @@ export default class extends IClass {
             } else {
                 return response.data
             }
-        }, (e) => { throw new IException(e) } )
+        }, (e) => { throw e } )
 
         if (_.get(customConfig.requestInterceptors, 'length')) {
             _.each(customConfig.requestInterceptors,
-                (interceptor) => instance.interceptors.request.use(interceptor, (e) => { throw new IException(e) } ))
+                (interceptor) => instance.interceptors.request.use(interceptor, (e) => { throw e } ))
         }
 
         if (_.get(customConfig.responseInterceptors, 'length')) {
             _.each(customConfig.responseInterceptors,
-                (interceptor) => instance.interceptors.response.use(interceptor, (e) => { throw new IException(e) } ))
+                (interceptor) => instance.interceptors.response.use(interceptor, (e) => { throw e } ))
         }
 
         try {

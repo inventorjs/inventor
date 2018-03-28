@@ -13,7 +13,8 @@ export default async function(ctx, next) {
 
     await next()
 
-    if (ctx.response.status === 404 && _.isUndefined(ctx.response.body)) {
+    if (ctx.response.status === 404 && ctx.iRequest.route
+    && _.isUndefined(ctx.response.body)) {
         ctx.response.status = 500
         throw new IException('You forget set response body or status or lose await next at async middleware')
     }
