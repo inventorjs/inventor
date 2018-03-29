@@ -200,6 +200,7 @@ export default class WebpackConfigure {
             )
             webpackConfig.plugins.unshift(new ProgressBarPlugin())
         } else {
+            webpackConfig.devtool = 'cheap-module-eval-source-map'
             webpackConfig.plugins.push(new webpack.HotModuleReplacementPlugin())
         }
 
