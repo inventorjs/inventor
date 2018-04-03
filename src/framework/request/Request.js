@@ -123,7 +123,7 @@ export default class extends IClass {
             const jsonpId = targetConfig.prefix + (++this._jsonpCount%_.toSafeInteger(_.pad('', 20, '9')))
             let script = null
 
-            const realData = { ...data, [targetConfig.callback]: jsonpId }
+            const realData = { ...data, [targetConfig.callback]: jsonpId, _: Date.now() }
             const realUrl = url.split('?')[0] + '?' + qs.stringify(realData)
             let timer = null
 

@@ -174,8 +174,8 @@ export default class Kernel extends IClass {
     }
 
     _initBaseMiddleware() {
-        // this._coreApp.use(coreBody({ multipart: true }))
-        // this._coreApp.use(RequestLogMiddleware)
+        this._coreApp.use(coreBody({ multipart: true }))
+        this._coreApp.use(RequestLogMiddleware)
         this._coreApp.use(RouteMiddleware)
     }
 
