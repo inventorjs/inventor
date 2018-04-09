@@ -99,10 +99,10 @@ export default class Router extends IClass {
         const prefix = _.get(this, 'routePath', '')
         if (_.isArray(routePath)) {
             routePath = _.map(routePath, (routePathItem) => {
-                return path.normalize(`${prefix}${routePathItem}`)
+                return path.posix.normalize(`${prefix}${routePathItem}`)
             })
         } else {
-            routePath = path.normalize(`${prefix}${routePath}`)
+            routePath = path.posix.normalize(`${prefix}${routePath}`)
         }
 
         const allLocals = { ...this._options.locals, ...locals }

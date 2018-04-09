@@ -223,6 +223,10 @@ export default class Kernel extends IClass {
             console.log(e)
             this.logger.error(e)
         })
+
+        process.on('SIGUSR2', () => {
+            process.exit(0)
+        })
     }
 
     run() {
