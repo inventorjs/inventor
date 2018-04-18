@@ -117,7 +117,9 @@ export default class Router extends IClass {
         })
 
         function handleRouteError(e, ctx) {
-            app().logger.error(e)
+            app().logger.error(e, 'route-error')
+
+            app().emit('route-error', e, ctx.iRequest, ctx.iResponse)
 
             if (ctx.iRequest.isAsync()) {
                 return ctx.iResponse.json(e)

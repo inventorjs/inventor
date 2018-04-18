@@ -7,7 +7,7 @@
 import Request from '../Request'
 import Response from '../Response'
 
-export default async function(ctx, next) {
+export default async function RouteMiddleware(ctx, next) {
     ctx.iRequest = new Request(ctx)
     ctx.iResponse = new Response(ctx)
 

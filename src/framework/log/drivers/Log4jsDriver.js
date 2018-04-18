@@ -10,7 +10,7 @@ import IClass from '../../support/base/IClass'
 export default class Log4jsDriver extends IClass {
     _levels = [ 'debug', 'info', 'warn', 'error' ]
 
-    _modes = [ 'console', 'single', 'dateFile', 'levelFile', 'levelDir' ]
+    _modes = [ 'console', 'single', 'dateFile', 'levelDateFile', 'levelDirDateFile' ]
 
     _dateFileConfig = {
         type: 'dateFile',
@@ -39,7 +39,7 @@ export default class Log4jsDriver extends IClass {
         super()
 
         if (!~this._modes.indexOf(logConfig.mode)) {
-            throw new IException('log config mode is invalid!')
+            throw new IException(`log config mode is invalid! must value of ${JSON.stringify(this._modes)}`)
         }
 
         const logPath = logConfig.logPath
@@ -72,7 +72,8 @@ export default class Log4jsDriver extends IClass {
         } else if (logConfig.mode === 'dateFile') {
             this._config.appenders = {
                 default: {
-                    ...this._dateFileConfig,
+                    ...pattern,
+                    pattern: _.get(logConfig, 'pattern', _dateFileConfig.pattern),
                     filename: `${logPath}/log-`,
                 }
             }
@@ -86,17 +87,17 @@ export default class Log4jsDriver extends IClass {
             this._config.appenders = _.reduce(this._levels, (result, level) => {
                 const filterName = `${level}-filter`
                 let filename = ''
-                if (logConfig.mode === 'levelFile') {
+                if (logConfig.mode === 'levelDateFile') {
                     filename = `${logPath}/${level}-`
-                } else if (logConfig.mode === 'levelDir') {
-                    filename = `${logPath}/${level}/${level}-`
+                } else if (logConfig.mode === 'levelDirDateFile') {
+                    filename = `${logPath}/${level}/`
                 }
 
                 return {
                     ...result,
                     [level]: {
                         ...this._dateFileConfig,
-                        datePattern: logConfig.datePattern,
+                        pattern: _.get(logConfig, 'pattern', _dateFileConfig.pattern),
                         filename: filename,
                     },
                     [filterName]: {
@@ -121,8 +122,8 @@ export default class Log4jsDriver extends IClass {
         Log4js.configure(this._config)
 
         _.each(this._levels, (level) => {
-            this[level] = (msg) => {
-                Log4js.getLogger(level)[level](msg)
+            this[level] = (msg, category='default') => {
+                Log4js.getLogger(category)[level](msg)
             }
         })
     }

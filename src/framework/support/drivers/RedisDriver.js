@@ -14,22 +14,30 @@ export default class RedisDriver extends Driver {
     constructor(redisConfig) {
         super()
 
+        let targetConfig = null
         if (redisConfig.mode === 'cluster') {
-            this._redis = new Redis.Cluster(redisConfig.servers)
+            targetConfig = redisConfig.servers
         } else if (redisConfig.mode === 'single') {
-            this._redis = new Redis(redisConfig.servers[0])
-        } else {
+            targetConfig = redisConfig.servers[0]
+        }
+
+        if (!targetConfig) {
             return null
         }
 
+        this._redis = new Redis.Cluster(targetConfig)
+
         this._redis.on('connect', () => {
-            app().logger.info('redis connect')
+            app().emit('redis-connect', targetConfig)
+            app().logger.info(`redis connect [${JSON.stringify(targetConfig)}]`, 'redis')
         })
         this._redis.on('ready', () => {
-            app().logger.info('redis ready')
+            app().emit('redis-ready', targetConfig)
+            app().logger.info(`redis ready [${JSON.stringify(targetConfig)}]`, 'redis')
         })
-        this._redis.on('error', (err) => {
-            app().logger.error(err)
+        this._redis.on('error', (e) => {
+            app().emit('redis-error', targetConfig)
+            app().logger.error(`redis error [${JSON.stringify(targetConfig)}] - ${e}`, 'redis')
         })
     }
 

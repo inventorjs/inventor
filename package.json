@@ -1,6 +1,6 @@
 {
   "name": "inventor",
-  "version": "0.0.28",
+  "version": "0.0.30",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -28,6 +28,7 @@
     "lodash": "^4.17.4",
     "log4js": "^2.3.12",
     "moment": "^2.20.1",
+    "mysql2": "^1.5.3",
     "query-string": "^6.0.0",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
@@ -38,7 +39,8 @@
     "react-router-dom": "^4.2.2",
     "react-router-redux": "^5.0.0-alpha.9",
     "redux": "^3.7.2",
-    "redux-promise-middleware": "^5.0.0"
+    "redux-promise-middleware": "^5.0.0",
+    "sequelize": "^4.37.6"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
