@@ -15,7 +15,7 @@ export default class SessionProvider extends Provider {
         switch (sessionConfig.store) {
             case 'redis':
                 const redisConfig = _.get(sessionConfig, 'config.redis')
-                store = new RedisStore(redisConfig)
+                store = new RedisStore(redisConfig, { timeout: sessionConfig.timeout })
                 break
             default:
                 store = null

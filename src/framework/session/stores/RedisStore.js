@@ -11,24 +11,40 @@ import { serialize, unserialize } from '../helpers'
 
 export default class RedisStore extends IClass {
     _redis = null
+    _timeout
 
-    constructor(redisConfig) {
+    constructor(redisConfig, { timeout=200 }) {
         super()
 
         this._redis = new RedisDriver(redisConfig)
+        this._timeout = timeout
     }
 
     async get(sid, maxAge, { rolling }) {
-        const data = await this._redis.get(sid)
-        const resultData = unserialize(data)
-        return resultData
+        try {
+            const data = await this._redis.get(sid).timeout(this._timeout)
+            const resultData = unserialize(data)
+            return resultData
+        } catch (e) {
+            app().emit(app().event('session-error'), e, 'get')
+            return false
+        }
     }
 
     async set(sid, sess, maxAge, { changed, rolling }) {
-        return await this._redis.set(sid, serialize(sess), 'EX', Math.floor(maxAge/1000))
+        try {
+            return await this._redis.set(sid, serialize(sess), 'EX', Math.floor(maxAge/1000)).timeout(this._timeout)
+        } catch (e) {
+            app().emit(app().event('session-error'), e, 'set')
+            return false
+        }
     }
 
     async destroy(sid) {
-        return await this._redis.del(sid)
+        try {
+            return await this._redis.del(sid).timeout(this._timeout)
+        } catch (e) {
+            app().emit(app().event('session-error'), e, 'destroy')
+        }
     }
 }

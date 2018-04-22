@@ -12,6 +12,8 @@ import IClass from '../support/base/IClass'
 
 const CancelToken = axios.CancelToken
 
+const LOG_CATEGORY = 'request'
+
 export default class extends IClass {
     _config = {
         logRequest: true,
@@ -189,6 +191,8 @@ export default class extends IClass {
             if (!_.isUndefined(res.response)) {
                 response = res.response
             }
+
+            app().emit('request-error', response, _.pick(res.config, ['method', 'url', 'data', 'headers']))
         }
 
         if (_.isString(_.get(res, 'config.data'))) {
@@ -204,7 +208,7 @@ export default class extends IClass {
             '[[TimeCost]]': timeCost,
         })
 
-        app().logger[logLevel](logStr)
+        app().logger[logLevel](logStr, LOG_CATEGORY)
     }
 
     async _send(config) {

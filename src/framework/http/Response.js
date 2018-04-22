@@ -33,16 +33,8 @@ export default class Response extends IClass {
 
     json(data) {
         this.header('content-type', 'application/json')
-
-        let JsonData = data
-        if (!!_.isError(data)) {
-            JsonData = {
-                code: -1,
-                msg: data.message,
-            }
-        }
-
-        const result = JSON.stringify(JsonData)
+        let jsonData = data
+        const result = JSON.stringify(jsonData)
 
         return this.send(result)
     }
@@ -90,6 +82,10 @@ export default class Response extends IClass {
     }
 
     renderError(code, detail='') {
+        if (this._ctx.iRequest.isAsync()) {
+            return this.jsonError(code, detail)
+        }
+
         const appPath = `${app().sharedPath}/apps/common`
         const appName = 'common'
 
@@ -100,15 +96,29 @@ export default class Response extends IClass {
             },
         }
 
+        this._ctx.res.statusCode = code
+
+        let errContent = ''
+
         try {
-            return this._render({ appPath, appName, initialState })
+            errContent = this._render({ appPath, appName, initialState, isError: true })
         } catch(e) {
             app().logger.error(e)
-            return this.status(code).send('')
         }
+
+        return this._ctx.res.end(errContent)
     }
 
-    _render({ appPath, appName='', initialState={} }) {
+    jsonError(code, e) {
+        this.header('content-type', 'application/javascript')
+
+        const jsonData = JSON.stringify({ ..._.pick(e, ['code', 'message']) })
+
+        this._ctx.res.statusCode = code
+        return this._ctx.res.end(jsonData)
+    }
+
+    _render({ appPath, appName='', initialState={}, isError=false }) {
         const appConfig = app().config('app')
 
         let appContent = ''
@@ -149,6 +159,7 @@ export default class Response extends IClass {
             }
 
             appContent = renderToString(<RootComponent { ...rootState } />)
+
             appState = store.getState()
         }
 
@@ -166,7 +177,14 @@ export default class Response extends IClass {
             sharedPath: app().sharedPath,
             webpackManifest: webpackManifest,
         }
-        return this.send(renderToStaticMarkup(<HTML { ...props } />))
+
+        const htmlContent = renderToStaticMarkup(<HTML { ...props } />)
+
+        if (isError) {
+            return htmlContent
+        }
+
+        return this.send(htmlContent)
     }
 
     renderApp(appName, initialState={}) {

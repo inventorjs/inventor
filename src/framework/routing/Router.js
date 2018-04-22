@@ -116,30 +116,8 @@ export default class Router extends IClass {
             locals: allLocals,
         })
 
-        function handleRouteError(e, ctx) {
-            app().logger.error(e, 'route-error')
-
-            app().emit('route-error', e, ctx.iRequest, ctx.iResponse)
-
-            if (ctx.iRequest.isAsync()) {
-                return ctx.iResponse.json(e)
-            } else {
-                return ctx.iResponse.render500()
-            }
-        }
-
         const routeHandler = async (ctx, next) => {
-            ctx.onerror = (e) => {
-                if (e) {
-                    return handleRouteError(e, ctx)
-                }
-            }
-
-            try {
-                await route.handle(ctx.iRequest, ctx.iResponse)
-            } catch (e) {
-                handleRouteError(e, ctx)
-            }
+            await route.handle(ctx.iRequest, ctx.iResponse)
         }
 
         const routeMiddleware = async (ctx, next) => {

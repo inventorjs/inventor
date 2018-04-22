@@ -73,7 +73,7 @@ export default class Log4jsDriver extends IClass {
             this._config.appenders = {
                 default: {
                     ...pattern,
-                    pattern: _.get(logConfig, 'pattern', _dateFileConfig.pattern),
+                    pattern: _.get(logConfig, 'pattern', this._dateFileConfig.pattern),
                     filename: `${logPath}/log-`,
                 }
             }
@@ -97,7 +97,7 @@ export default class Log4jsDriver extends IClass {
                     ...result,
                     [level]: {
                         ...this._dateFileConfig,
-                        pattern: _.get(logConfig, 'pattern', _dateFileConfig.pattern),
+                        pattern: _.get(logConfig, 'pattern', this._dateFileConfig.pattern),
                         filename: filename,
                     },
                     [filterName]: {

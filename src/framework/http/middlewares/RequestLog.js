@@ -4,7 +4,7 @@
  * @author : sunkeysun
  */
 
-export default async function RequestLogMiddleware(ctx, next) {
+export default async function RequestLog(ctx, next) {
     const startTime = Date.now()
 
     await next()

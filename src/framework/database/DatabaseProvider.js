@@ -77,11 +77,11 @@ export default class DatabaseProvider extends Provider {
             dbs[dbName].authenticate()
                 .then(() => {
                     app().logger.info(`database [${dbName}] connect success`, 'database')
-                    app().emit('database-connect', databaseConfig)
+                    app().emit(app().event('database-connect'), databaseConfig)
                 })
                 .catch((e) => {
                     app().logger.error(`database [${dbName}] connect error : ${e}`, 'database')
-                    app().emit('database-error', e, databaseConfig)
+                    app().emit(app().event('database-error'), e, databaseConfig)
                 })
         })
 

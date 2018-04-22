@@ -14,42 +14,30 @@ export default class RedisDriver extends Driver {
     constructor(redisConfig) {
         super()
 
-        let targetConfig = null
+        const options = _.get(redisConfig, 'options', {})
+
         if (redisConfig.mode === 'cluster') {
-            targetConfig = redisConfig.servers
+            const clusterOptions = _.get(redisConfig, 'clusterOptions', {})
+            clusterOptions.redisOptions = options
+            this._redis = new Redis.Cluster(redisConfig.servers, clusterOptions)
         } else if (redisConfig.mode === 'single') {
-            targetConfig = redisConfig.servers[0]
+            const targetServer = _.get(redisConfig.servers, '0', {})
+            this._redis = new Redis({ ...options, ...targetServer })
         }
-
-        if (!targetConfig) {
-            return null
-        }
-
-        this._redis = new Redis.Cluster(targetConfig)
 
         this._redis.on('connect', () => {
-            app().emit('redis-connect', targetConfig)
-            app().logger.info(`redis connect [${JSON.stringify(targetConfig)}]`, 'redis')
+            app().emit(app().event('redis-connect'), redisConfig)
+            app().logger.info(`redis connect [${JSON.stringify(redisConfig)}]`, 'redis')
         })
         this._redis.on('ready', () => {
-            app().emit('redis-ready', targetConfig)
-            app().logger.info(`redis ready [${JSON.stringify(targetConfig)}]`, 'redis')
+            app().emit(app().event('redis-ready'), redisConfig)
+            app().logger.info(`redis ready [${JSON.stringify(redisConfig)}]`, 'redis')
         })
         this._redis.on('error', (e) => {
-            app().emit('redis-error', targetConfig)
-            app().logger.error(`redis error [${JSON.stringify(targetConfig)}] - ${e}`, 'redis')
+            // app().emit(app().event('redis-error'), e, redisConfig)
+            // app().logger.error(`redis error [${JSON.stringify(redisConfig)}] - ${e}`, 'redis')
         })
-    }
 
-    async get(...args) {
-        return await Reflect.apply(this._redis.get, this._redis, args)
-    }
-
-    async set(...args) {
-        return await Reflect.apply(this._redis.set, this._redis, args)
-    }
-
-    async del(...args) {
-        return await Reflect.apply(this._redis.del, this._redis, args)
+        return this._redis
     }
 }

@@ -18,8 +18,9 @@ import DatabaseProvider from '../database/DatabaseProvider'
 import SessionProvider from '../session/SessionProvider'
 import RoutingProvider from '../routing/RoutingProvider'
 import RequestProvider from '../request/RequestProvider'
-import RequestLogMiddleware from './middleware/RequestLogMiddleware'
-import RouteMiddleware from './middleware/RouteMiddleware'
+import RequestLogMiddleware from './middlewares/RequestLog'
+import RequestTimeoutMiddleware from './middlewares/RequestTimeout'
+import IRequestResponseMiddleware from './middlewares/IRequestResponse'
 import { config } from '../support/helpers'
 import version from '../version'
 
@@ -38,17 +39,39 @@ export default class Kernel extends EventEmitter {
 
     __appConfig = {}
 
+    __events = {
+        'process-uncaughtException': Symbol('process-uncaughtException'),
+        'process-unhandledRejection': Symbol('process-unhandledRejection'),
+        'process-SIGINT': Symbol('process-SIGINT'),
+        'process-SIGUSR1': Symbol('process-SIGUSR1'),
+        'process-SIGUSR2': Symbol('process-SIGUSR2'),
+        'process-SIGTERM': Symbol('process-SIGTERM'),
+        'process-warning': Symbol('process-warning'),
+        'process-exit': Symbol('process-exit'),
+        'app-error': Symbol('app-error'),
+        'app-timeout': Symbol('app-timeout'),
+        'app-listening': Symbol('app-listening'),
+        'session-error': Symbol('session-error'),
+        'redis-connect': Symbol('redis-connect'),
+        'redis-ready': Symbol('redis-ready'),
+        'redis-error': Symbol('redis-error'),
+        'database-connect': Symbol('database-connect'),
+        'database-error': Symbol('database-error'),
+        'request-error': Symbol('request-error'),
+        'route-error': Symbol('route-error'),
+    }
+
     isBrowser = false
 
     constructor(basePath) {
         super()
 
         this.__basePath = basePath
-        this.__registerGlobal()
         this.__initEnv()
+        this.__registerGlobal()
+        this.__registerBaseProvider()
         this.__initApp()
         this.__initBaseMiddleware()
-        this.__registerBaseProvider()
     }
 
     get version() {
@@ -166,6 +189,14 @@ export default class Kernel extends EventEmitter {
         return instance
     }
 
+    event(eventName) {
+        if (!this.__events[eventName]) {
+            throw new IException(`event ${eventName} not supported, you can use app().events get event list`)
+        }
+
+        return this.__events[eventName]
+    }
+
     __initEnv() {
         const env = process.env.NODE_ENV
 
@@ -183,17 +214,18 @@ export default class Kernel extends EventEmitter {
     }
 
     __initBaseMiddleware() {
+        this.__coreApp.use(RequestTimeoutMiddleware)
+        this.__coreApp.use(IRequestResponseMiddleware)
         this.__coreApp.use(coreBody({ multipart: true }))
         this.__coreApp.use(RequestLogMiddleware)
-        this.__coreApp.use(RouteMiddleware)
+        this.__initSessionMiddleware()
+        this.__initRoutingMiddleware()
     }
 
     __registerBaseProvider() {
         this.__registerLogProvider()
         this.__registerRedisProvider()
         this.__registerDatabaseProvider()
-        this.__registerSessionProvider()
-        this.__registerRoutingProvider()
         this.__registerRequestProvider()
     }
 
@@ -209,12 +241,12 @@ export default class Kernel extends EventEmitter {
         this.__db = ( new DatabaseProvider() ).register()
     }
 
-    __registerRoutingProvider() {
+    __initRoutingMiddleware() {
         const routes = ( new RoutingProvider() ).register()
         this.__coreApp.use(routes)
     }
 
-    __registerSessionProvider() {
+    __initSessionMiddleware() {
         const session = ( new SessionProvider() ).register()
         this.__coreApp.use(session(this.__coreApp))
     }
@@ -233,76 +265,100 @@ export default class Kernel extends EventEmitter {
             },
         })
 
-        this.__registerGlobalEvents()
         this._registerGlobalEvents()
+        this.__registerSystemEvents()
     }
 
     _registerGlobalEvents() {
-        const availableEvents = [
-            'process-uncaughtException',
-            'process-unhandledRejection',
-            'process-SIGINT',
-            'process-SIGUSR1',
-            'process-SIGUSR2',
-            'process-SIGTERM',
-            'process-warning',
-            'app-error',
-            'app-listening',
-            'process-exit',
-            'redis-connect',
-            'redis-ready',
-            'redis-error',
-            'database-connect',
-            'database-error',
-        ]
-
-        console.log(`Inventor app() support events : ${JSON.stringify(availableEvents)}`)
+        console.log(`Inventor app() support events : ${JSON.stringify(_.keys(this.events))}`)
     }
 
-    __registerGlobalEvents() {
+    __registerSystemEvents() {
         process.on('uncaughtException', (e) => {
-            app().logger.error(e, 'process')
-            app().emit('process-uncaughtException', e)
+            const event = app().event('process-uncaughtException')
+            if (app().listenerCount(event) > 0) {
+                return app().emit(event, e)
+            }
+
+            if (app().logger) {
+                app().logger.error(e, 'process')
+            } else {
+                console.log(e)
+            }
+
             process.exit(1)
         })
 
         process.on('unhandledRejection', (reason, promise) => {
+            const event = app().event('process-unhandledRejection')
+            if (app().listenerCount(event) > 0) {
+                return app().emit(event, reason, promise)
+            }
+
+            app().emit(event, reason, promise)
             app().logger.error(reason, 'process')
-            app().emit('process-unhandledRejection', reason, promise)
         })
 
         process.on('SIGINT', () => {
+            const event = app().event('process-SIGINT')
+            if (app().listenerCount(event) > 0) {
+                return app().emit(event)
+            }
+
             app().logger.error('SIGINT', 'process')
-            app().emit('process-SIGINT')
             process.exit(0)
         })
 
         process.on('SIGUSR1', () => {
+            const event = app().event('process-SIGUSR1')
+            if (app().listenerCount(event) > 0) {
+                return app().emit(event)
+            }
+
             app().logger.error('SIGUSR1', 'process')
-            app().emit('process-SIGUSR1')
             process.exit(0)
         })
 
         process.on('SIGUSR2', () => {
+            const event = app().event('process-SIGUSR2')
+            if (app().listenerCount(event) > 0) {
+                return app().emit(event)
+            }
+
             app().logger.error('SIGUSR2', 'process')
-            app().emit('process-SIGUSR2')
             process.exit(0)
         })
 
         process.on('SIGTERM', () => {
+            const event = app().event('process-SIGTERM')
+            if (app().listenerCount(event) > 0) {
+                return app().emit(event)
+            }
+
             app().logger.error('SIGTERM', 'process')
-            app().emit('process-SIGTERM')
             process.exit(0)
         })
 
         process.on('warning', () => {
+            const event = app().event('process-warning')
+            if (app().listenerCount(event) > 0) {
+                return app().emit(event)
+            }
+
             app().logger.error('warning', 'process')
-            app().emit('process-warning')
         })
 
-        process.on('exit', () => {
-            app().logger.error('exit', 'process')
-            app().emit('process-exit')
+        process.on('exit', (e) => {
+            const event = app().event('process-exit')
+            if (app().listenerCount(event) > 0) {
+                return app().emit(event)
+            }
+
+            if (app().logger) {
+                app().logger.error('exit', 'process')
+            } else {
+                console.log('exit')
+            }
         })
     }
 
@@ -313,6 +369,18 @@ export default class Kernel extends EventEmitter {
 
         const { host='', port } = this.__appConfig.server
 
+        this.__coreApp.onerror = (e, ctx) => {
+            const event = app().event('app-error')
+            if (app().listenerCount(event) > 0) {
+                return app().emit(event, e, ctx)
+            }
+
+            app().logger.error(e, 'app')
+            app().emit(app().event('app-error'), e, ctx)
+
+            return ctx.iResponse.render500()
+        }
+
         let server = this.__coreApp
 
         if (host) {
@@ -321,14 +389,9 @@ export default class Kernel extends EventEmitter {
             server = this.__coreApp.listen(port)
         }
 
-        this.__coreApp.on('error', (e) => {
-            app().logger.error(e, 'app')
-            app().emit('app-error', e)
-        })
-
         server.on('listening', () => {
             app().logger.info(`Inventor server listening on ${host}:${port}`, 'app')
-            app().emit('app-listening')
+            app().emit(app().event('app-listening'), this.__appConfig.server)
         })
 
         this.__booted = true
