@@ -44,6 +44,9 @@ export default class extends IClass {
         maxContentLength: 10 * 1024 * 1024,
         timeout: 10 * 1000,
         maxRedirects: 0,
+        transFormRequest: [(data, headers) => data],
+        transFormResponse: [(data) => data],
+        proxy: false,
     }
 
     _defaultCustomConfig = {
@@ -212,8 +215,8 @@ export default class extends IClass {
     }
 
     async _send(config) {
-        const targetConfig = { ...this._defaultConfig, ..._.pick(config, _.keys(this._defaultConfig)) }
-        const customConfig = { ...this._defaultCustomConfig, ..._.pick(config, _.keys(this._defaultCustomConfig)) }
+        const targetConfig = _.extend({}, this._defaultConfig, _.pick(config, _.keys(this._defaultConfig)))
+        const customConfig = _.extend({}, this._defaultCustomConfig, _.pick(config, _.keys(this._defaultCustomConfig)))
 
         if (targetConfig.headers) {
             targetConfig.headers = _.defaults({}, this._defaultConfig.headers, targetConfig.headers)

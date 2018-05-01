@@ -25,6 +25,10 @@ export default class RedisDriver extends Driver {
             this._redis = new Redis({ ...options, ...targetServer })
         }
 
+        if (!this._redis) {
+            return this._redis
+        }
+
         this._redis.on('connect', () => {
             app().emit(app().event('redis-connect'), redisConfig)
             app().logger.info(`redis connect [${JSON.stringify(redisConfig)}]`, 'redis')
@@ -34,8 +38,8 @@ export default class RedisDriver extends Driver {
             app().logger.info(`redis ready [${JSON.stringify(redisConfig)}]`, 'redis')
         })
         this._redis.on('error', (e) => {
-            // app().emit(app().event('redis-error'), e, redisConfig)
-            // app().logger.error(`redis error [${JSON.stringify(redisConfig)}] - ${e}`, 'redis')
+            app().emit(app().event('redis-error'), e, redisConfig)
+            app().logger.error(`redis error [${JSON.stringify(redisConfig)}] - ${e}`, 'redis')
         })
 
         return this._redis

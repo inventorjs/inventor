@@ -376,7 +376,6 @@ export default class Kernel extends EventEmitter {
             }
 
             app().logger.error(e, 'app')
-            app().emit(app().event('app-error'), e, ctx)
 
             return ctx.iResponse.render500()
         }
