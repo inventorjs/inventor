@@ -1,6 +1,6 @@
 {
   "name": "inventor",
-  "version": "0.0.30",
+  "version": "0.0.34",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -51,6 +51,7 @@
     "babel-polyfill": "^6.26.0",
     "babel-preset-env": "^1.6.1",
     "babel-preset-react": "^6.24.1",
-    "babel-preset-stage-0": "^6.24.1"
+    "babel-preset-stage-0": "^6.24.1",
+    "hard-source-webpack-plugin": "^0.6.7"
   }
 }

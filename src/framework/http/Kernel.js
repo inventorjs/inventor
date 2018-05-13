@@ -270,7 +270,7 @@ export default class Kernel extends EventEmitter {
     }
 
     _registerGlobalEvents() {
-        console.log(`Inventor app() support events : ${JSON.stringify(_.keys(this.events))}`)
+        console.log(`Inventor app() support events : ${JSON.stringify(_.keys(this.__events))}`)
     }
 
     __registerSystemEvents() {
@@ -377,7 +377,7 @@ export default class Kernel extends EventEmitter {
 
             app().logger.error(e, 'app')
 
-            return ctx.iResponse.render500()
+            return ctx.iResponse.render500(e)
         }
 
         let server = this.__coreApp

@@ -44,8 +44,8 @@ export default class extends IClass {
         maxContentLength: 10 * 1024 * 1024,
         timeout: 10 * 1000,
         maxRedirects: 0,
-        transFormRequest: [(data, headers) => data],
-        transFormResponse: [(data) => data],
+        transformRequest: [],
+        transformResponse: [],
         proxy: false,
     }
 
@@ -289,6 +289,15 @@ export default class extends IClass {
 
             const timeCost = Date.now() - startTime
             this._logInfo(e, timeCost)
+
+            let code = _.get(e, 'code', '')
+            if (app().isBrowser) {
+                code = `[[WebRequest]]${code}`
+            } else {
+                code = `[[Request]]${code}`
+            }
+
+            e.code = code
 
             throw new IException(e)
         }

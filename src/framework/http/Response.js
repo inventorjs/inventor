@@ -163,8 +163,6 @@ export default class Response extends IClass {
             appState = store.getState()
         }
 
-        const webpackManifest = require(`${app().sharedPath}/__manifest.json`)
-
         const props = {
             ssr: appConfig.ssr,
             title: _.get(this.locals, 'PAGE_TITLE', ''),
@@ -175,7 +173,6 @@ export default class Response extends IClass {
             appName: appName,
             appContent: appContent,
             sharedPath: app().sharedPath,
-            webpackManifest: webpackManifest,
         }
 
         const htmlContent = renderToStaticMarkup(<HTML { ...props } />)

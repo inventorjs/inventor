@@ -17,7 +17,6 @@ export default function(props={}) {
         appContent='',
         sharedPath='',
         ssr=false,
-        webpackManifest={},
     } = props
 
     const { jsList: vendorJsList=[], cssList: vendorCssList=[] } = require(`${sharedPath}/vendor/addon`)
@@ -28,7 +27,6 @@ export default function(props={}) {
     const realCssList = vendorCssList.concat(commonCssList).concat(cssList)
 
     const jsonInitialState = JSON.stringify(initialState)
-    const jsonWebpackManifest = JSON.stringify(webpackManifest)
 
     return (
         <html>
@@ -49,7 +47,6 @@ export default function(props={}) {
                         window.__INITIAL_STATE__ = ${jsonInitialState}
                         window.__NODE_ENV__ = '${nodeEnv}'
                         window.__APP_NAME__ = '${appName}'
-                        window.__WEBPACK_MANIFEST__ = ${jsonWebpackManifest}
                     `
                 } }></script>
             </head>

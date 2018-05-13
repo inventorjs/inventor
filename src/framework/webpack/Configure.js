@@ -6,18 +6,20 @@
 
 import path from 'path'
 import fs from 'fs'
+import os from 'os'
 import _ from 'lodash'
 import webpack from 'webpack'
 import HtmlWebpackPlugin from 'html-webpack-plugin'
+import HtmlWebpackHarddiskPlugin from 'html-webpack-harddisk-plugin'
 import CleanWebpackPlugin from 'clean-webpack-plugin'
 import ExtractTextPlugin from 'extract-text-webpack-plugin'
-import UglifyJsPlugin from 'uglifyjs-webpack-plugin'
+import ParallelUglifyJsPlugin from 'webpack-parallel-uglify-plugin'
 import autoprefixer from 'autoprefixer'
 import OptimizeCssAssetsPlugin from 'optimize-css-assets-webpack-plugin'
 import ProgressBarPlugin from 'progress-bar-webpack-plugin'
-import WebpackChunkHash from 'webpack-chunk-hash'
-import InlineChunkManifestPlugin from 'inline-chunk-manifest-html-webpack-plugin'
-import FileManagerPlugin from 'filemanager-webpack-plugin'
+import HappyPack from 'happypack'
+
+const happyThreadPool = HappyPack.ThreadPool({ size: os.cpus().length })
 
 export default class WebpackConfigure {
     _basePath = ''
@@ -77,7 +79,6 @@ export default class WebpackConfigure {
 
     _template(name, entry, plugins=[]) {
         const outputPath = `${this.buildPath}/web/${this.buildMode}`
-        const manifestName = '__manifest.json'
 
         let webpackConfig = {
             name: name,
@@ -92,13 +93,14 @@ export default class WebpackConfigure {
                     {
                         test: /\.jsx?$/,
                         use: [
-                            'babel-loader',
+                            'happypack/loader?id=babel',
                         ],
                         exclude: /node_modules/,
                     },
                     {
                         test: /(vendor|node_module).*?\.less$/,
                         use: ExtractTextPlugin.extract({
+                            disable: this._ifRelease(false, true),
                             fallback: 'style-loader',
                             use: [
                                 'css-loader',
@@ -153,11 +155,10 @@ export default class WebpackConfigure {
                 new webpack.DefinePlugin({
                     'process.env.NODE_ENV': this._ifRelease(JSON.stringify('production'), JSON.stringify('development')),
                 }),
-                new webpack.HashedModuleIdsPlugin(),
-                new WebpackChunkHash(),
-                new InlineChunkManifestPlugin({
-                    filename: manifestName,
-                    manifestVariable: '__WEBPACK_MANIFEST__',
+                new HappyPack({
+                    id: 'babel',
+                    loaders: [ 'babel-loader' ],
+                    threadPool: happyThreadPool,
                 }),
                 new ExtractTextPlugin(
                     this._ifRelease('[name].[md5:contenthash:hex:20].css', '[name].css'),
@@ -186,8 +187,19 @@ export default class WebpackConfigure {
 
         if (this._ifRelease('release', 'debug') === 'release') {
             webpackConfig.plugins.push(
-                new UglifyJsPlugin({
-                    parallel: true,
+                new ParallelUglifyJsPlugin({
+                    uglifyES: {
+                        output: {
+                            beautify: false,
+                            comments: false,
+                        },
+                        compress: {
+                            warnings: false,
+                            drop_console: true,
+                            collapse_vars: true,
+                            reduce_vars: true,
+                        },
+                    },
                 })
             )
             webpackConfig.plugins.push(
@@ -202,18 +214,6 @@ export default class WebpackConfigure {
         } else {
             webpackConfig.devtool = 'cheap-module-eval-source-map'
             webpackConfig.plugins.push(new webpack.HotModuleReplacementPlugin())
-        }
-
-        if (!this._devServer) {
-            webpackConfig.plugins.push(
-                new FileManagerPlugin({
-                    onEnd: {
-                        move: [
-                            { source: `${outputPath}/${manifestName}`, destination: `${this.sharedPath}/${manifestName}` },
-                        ],
-                    },
-                }),
-            )
         }
 
         return webpackConfig
@@ -234,25 +234,24 @@ export default class WebpackConfigure {
         let plugins = []
         let output = []
         for (let appName in appsConfig) {
-            if (!!appsConfig[appName].build) {
-                const config = _.extend({}, appsConfig.common, appsConfig[appName])
-                const outputName = `apps/${appName}/index`
-                const entryPath = path.resolve(this.webPath, `apps/__${appName}.js`)
-                entry[outputName] = [ entryPath ]
+            const config = _.extend({}, appsConfig.common, appsConfig[appName])
+            const outputName = `apps/${appName}/index`
+            const entryPath = path.resolve(this.webPath, `apps/__${appName}.js`)
+            entry[outputName] = [ entryPath ]
 
-                plugins.push(
-                    new HtmlWebpackPlugin({
-                        chunks: [ outputName ],
-                        filename: path.resolve(this.sharedPath, `apps/${appName}/addon/__build.jsx`),
-                        template: path.resolve(__dirname, 'addon.tpl'),
-                        inject: false,
-                    })
-                )
+            plugins.push(
+                new HtmlWebpackPlugin({
+                    chunks: [ outputName ],
+                    filename: path.resolve(this.sharedPath, `apps/${appName}/addon/__build.jsx`),
+                    template: path.resolve(__dirname, 'addon.tpl'),
+                    inject: false,
+                    alwaysWriteToDisk: true,
+                })
+            )
 
-                output.push(`apps/${appName}/`)
+            output.push(`apps/${appName}/`)
 
-                this._createEntryFile(appName, config, entryPath)
-            }
+            this._createEntryFile(appName, config, entryPath)
         }
 
         return {
@@ -278,6 +277,7 @@ export default class WebpackConfigure {
                 filename: path.resolve(this.sharedPath, 'common/addon/__build.jsx'),
                 template: path.resolve(__dirname, 'addon.tpl'),
                 inject: false,
+                alwaysWriteToDisk: true,
             })
         )
 
@@ -306,6 +306,7 @@ export default class WebpackConfigure {
                 filename: path.resolve(this.sharedPath, `vendor/addon/__build.jsx`),
                 template: path.resolve(__dirname, 'addon.tpl'),
                 inject: false,
+                alwaysWriteToDisk: true,
             })
         )
 
@@ -331,11 +332,15 @@ export default class WebpackConfigure {
         const plugins = vendorPlugins.concat(commonPlugins).concat(appsPlugins)
         const output = vendorOutput.concat(commonOutput).concat(appsOutput)
 
-        plugins.push(
-            new CleanWebpackPlugin(output, {
-                root: path.join(this.buildPath, `/web/${this.buildMode}/`),
-            }),
-        )
+        if (!this._devServer) {
+            plugins.push(
+                new CleanWebpackPlugin(output, {
+                    root: path.join(this.buildPath, `/web/${this.buildMode}/`),
+                }),
+            )
+        } else {
+            plugins.push( new HtmlWebpackHarddiskPlugin() )
+        }
 
         const template = this._template('template', entry, plugins)
 

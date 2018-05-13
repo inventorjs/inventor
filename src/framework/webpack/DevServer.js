@@ -13,7 +13,7 @@ export default class DevServer {
     _server = null
     _serverConfig = null
 
-    constructor({ basePath, publicPath, serverConfig, webServer, buildMode } ) {
+    constructor({ basePath, publicPath, localWeb, localServer, buildMode } ) {
         const devServer = true
         const configure = new WebpackConfigure({ basePath, publicPath, buildMode, devServer })
         const webpackConfig = configure.getTemplate()
@@ -34,7 +34,7 @@ export default class DevServer {
             publicPath: publicPath+'/',
             historyApiFallback: true,
             headers: {
-                'Access-Control-Allow-Origin': `http://${webServer.host}:${webServer.port}`,
+                'Access-Control-Allow-Origin': `http://${localServer.host}:${localServer.port}`,
                 'Access-Control-Allow-Credentials': true,
             },
             watchOptions: {
@@ -42,10 +42,13 @@ export default class DevServer {
             },
         })
 
-        this._serverConfig = serverConfig
+        this._serverConfig = localWeb
     }
 
     run() {
+        if (!this._serverConfig || !this._serverConfig.port || !this._serverConfig.host) {
+            throw new Error('devServer "serverConfig" must have valid host and port')
+        }
         this._server.listen(this._serverConfig.port, this._serverConfig.host)
     }
 }
