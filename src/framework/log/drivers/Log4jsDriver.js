@@ -25,11 +25,16 @@ export default class Log4jsDriver extends IClass {
         level: 'level',
     }
 
+    _layout = {
+        type: 'pattern',
+        pattern: '[%d] [%p] %m',
+    }
+
     _config = {
         appenders: {
         },
         categories: {
-            default: { appenders: ['debug-filter', 'debug'], level: 'debug'}
+            default: { appenders: ['debug'], level: 'debug'}
         },
         pm2: true,
         replaceConsole: true,
@@ -43,11 +48,13 @@ export default class Log4jsDriver extends IClass {
         }
 
         const logPath = logConfig.logPath
+        const layout = { ...this._layout, ..._.get(logConfig, 'layout', {}) }
 
         if (logConfig.mode === 'console') {
             this._config.appenders = {
                 default: {
                     type: 'console',
+                    layout,
                 },
             }
             this._config.categories = {
@@ -61,6 +68,7 @@ export default class Log4jsDriver extends IClass {
                 default: {
                     type: 'file',
                     filename: `${logPath}/log.txt`,
+                    layout,
                 },
             }
             this._config.categories = {
@@ -75,6 +83,7 @@ export default class Log4jsDriver extends IClass {
                     ...pattern,
                     pattern: _.get(logConfig, 'pattern', this._dateFileConfig.pattern),
                     filename: `${logPath}/log-`,
+                    layout,
                 }
             }
             this._config.categories = {
@@ -85,7 +94,6 @@ export default class Log4jsDriver extends IClass {
             }
         } else {
             this._config.appenders = _.reduce(this._levels, (result, level) => {
-                const filterName = `${level}-filter`
                 let filename = ''
                 if (logConfig.mode === 'levelDateFile') {
                     filename = `${logPath}/${level}-`
@@ -99,11 +107,7 @@ export default class Log4jsDriver extends IClass {
                         ...this._dateFileConfig,
                         pattern: _.get(logConfig, 'pattern', this._dateFileConfig.pattern),
                         filename: filename,
-                    },
-                    [filterName]: {
-                        ...this._levelFilterConfig,
-                        appender: level,
-                        level: level,
+                        layout,
                     },
                 }
             }, this._config.appenders)
@@ -113,7 +117,7 @@ export default class Log4jsDriver extends IClass {
                     ...result,
                     [level]: {
                         level,
-                        appenders: [ `${level}-filter`, `${level}` ],
+                        appenders: [ `${level}` ],
                     },
                 }
             }, this._config.categories)
@@ -123,7 +127,8 @@ export default class Log4jsDriver extends IClass {
 
         _.each(this._levels, (level) => {
             this[level] = (msg, category='default') => {
-                Log4js.getLogger(category)[level](msg)
+                const realMsg = `${category} - ${msg}`
+                Log4js.getLogger(level)[level](realMsg)
             }
         })
     }
