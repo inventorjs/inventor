@@ -195,7 +195,7 @@ export default class extends IClass {
                 response = res.response
             }
 
-            app().emit('request-error', response, _.pick(res.config, ['method', 'url', 'data', 'headers']))
+            app().emit(app().event('request-error'), response, _.pick(res.config, ['method', 'url', 'data', 'headers']))
         }
 
         if (_.isString(_.get(res, 'config.data'))) {
@@ -297,9 +297,10 @@ export default class extends IClass {
                 code = `[[Request]]${code}`
             }
 
-            e.code = code
+            const exception = new IException(e)
+            exception.code = code
 
-            throw new IException(e)
+            throw exception
         }
     }
 }
