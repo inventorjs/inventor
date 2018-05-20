@@ -127,6 +127,11 @@ export default class Log4jsDriver extends IClass {
 
         _.each(this._levels, (level) => {
             this[level] = (msg, category='default') => {
+                if (_.isError(msg)) {
+                    msg = msg.stack
+                } else if (_.isObject(msg)) {
+                    msg = JSON.stringify(msg)
+                }
                 const realMsg = `${category} - ${msg}`
                 Log4js.getLogger(level)[level](realMsg)
             }

@@ -96,7 +96,6 @@ export default class Response extends IClass {
             },
         }
 
-        this._ctx.res.statusCode = code
 
         let errContent = ''
 
@@ -106,7 +105,13 @@ export default class Response extends IClass {
             app().logger.error(e)
         }
 
-        return this._ctx.res.end(errContent)
+        if (code === 500) {
+            this._ctx.res.statusCode = code
+            return this._ctx.res.end(errContent)
+        } else {
+            this.status(code)
+            return this.send(errContent)
+        }
     }
 
     jsonError(code, e) {

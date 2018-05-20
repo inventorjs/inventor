@@ -13,13 +13,14 @@ import createHistory from 'history/createBrowserHistory'
 import { createStore, applyMiddleware, combineReducers } from 'redux'
 import { routerReducer, routerMiddleware } from 'react-router-redux'
 import promiseMiddleware from 'redux-promise-middleware'
+import EventEmitter from 'eventemitter3'
 
 import IException from '../support/base/IException'
 import RootComponent from '../shared/app/WebRoot'
 import RequestProvider from '../request/RequestProvider'
 import version from '../version'
 
-export default class Kernel {
+export default class Kernel extends EventEmitter {
     _request = null
     _logger = console
 
@@ -31,6 +32,8 @@ export default class Kernel {
     isBrowser = true
 
     constructor({ webpackConfig, appConfig, App, reducers }) {
+        super()
+
         this._webpackConfig = webpackConfig
         this._App = App
         this._reducers = reducers

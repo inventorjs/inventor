@@ -22,12 +22,14 @@ export default async function RequestTimeout(ctx, next) {
     ])
     .then((value) => {
         if (value === timeoutValue) {
+            const e = IException(`server timeout(${timeout}ms)`)
+
             const event = app().event('app-timeout')
             if (app().listenerCount(event) > 0) {
-                return app().emit(event)
+                return app().emit(event, e)
             }
 
-            throw new IException(`server timeout(${timeout}ms)`)
+            throw e
         }
     })
 }

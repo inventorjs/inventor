@@ -195,7 +195,7 @@ export default class extends IClass {
                 response = res.response
             }
 
-            app().emit(app().event('request-error'), response, _.pick(res.config, ['method', 'url', 'data', 'headers']))
+            app().emit(app().event('request-error'), res, _.pick(res.config, ['method', 'url', 'data', 'headers']))
         }
 
         if (_.isString(_.get(res, 'config.data'))) {

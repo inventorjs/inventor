@@ -1,6 +1,6 @@
 {
   "name": "inventor",
-  "version": "0.0.36",
+  "version": "0.0.37",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -20,6 +20,7 @@
   "dependencies": {
     "axios": "^0.17.1",
     "core-decorators": "^0.20.0",
+    "eventemitter3": "^3.1.0",
     "ioredis": "^3.2.2",
     "koa": "^2.4.1",
     "koa-body": "^2.5.0",
