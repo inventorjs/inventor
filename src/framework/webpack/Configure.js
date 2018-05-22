@@ -166,6 +166,11 @@ export default class WebpackConfigure {
                         allChunks: true,
                     }
                 ),
+                new webpack.HashedModuleIdsPlugin({
+                    hashFunction: 'sha256',
+                    hashDigest: 'hex',
+                    hashDigestLength: 20,
+                }),
                 new webpack.optimize.CommonsChunkPlugin({
                     name: [
                         'common/common',
