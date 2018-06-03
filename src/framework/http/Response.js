@@ -82,6 +82,10 @@ export default class Response extends IClass {
     }
 
     renderError(code, detail='') {
+        if (this._ctx.res.headersSent) {
+            return false
+        }
+
         if (this._ctx.iRequest.isAsync()) {
             return this.jsonError(code, detail)
         }
@@ -91,11 +95,10 @@ export default class Response extends IClass {
 
         const initialState = {
             error: {
-                code,
+                code: code === 'core' ? 500 : code,
                 detail,
             },
         }
-
 
         let errContent = ''
 
@@ -105,12 +108,11 @@ export default class Response extends IClass {
             app().logger.error(e)
         }
 
-        if (code === 500) {
-            this._ctx.res.statusCode = code
+        if (code === 'core') {
+            this._ctx.res.statusCode = 500
             return this._ctx.res.end(errContent)
         } else {
-            this.status(code)
-            return this.send(errContent)
+            return this.status(code).send(errContent)
         }
     }
 
@@ -119,8 +121,12 @@ export default class Response extends IClass {
 
         const jsonData = JSON.stringify({ ..._.pick(e, ['code', 'message']) })
 
-        this._ctx.res.statusCode = code
-        return this._ctx.res.end(jsonData)
+        if (code === 'core') {
+            this._ctx.res.statusCode = 500
+            return this._ctx.res.end(jsonData)
+        } else {
+            return this.status(500).send(jsonData)
+        }
     }
 
     _render({ appPath, appName='', initialState={}, isError=false }) {
@@ -178,13 +184,17 @@ export default class Response extends IClass {
             appName: appName,
             appContent: appContent,
             sharedPath: app().sharedPath,
+            noHash: appConfig.noHash,
+            webHost: appConfig.webHost,
         }
 
-        const htmlContent = renderToStaticMarkup(<HTML { ...props } />)
+        let htmlContent = renderToStaticMarkup(<HTML { ...props } />)
 
         if (isError) {
             return htmlContent
         }
+
+        htmlContent = `<!DOCTYPE html>${htmlContent}`
 
         return this.send(htmlContent)
     }

@@ -7,6 +7,7 @@
 import EventEmitter from 'events'
 import lodash from 'lodash'
 import moment from 'moment'
+import Immutable from 'immutable'
 import CoreApp from 'koa'
 import coreBody from 'koa-body'
 
@@ -58,7 +59,6 @@ export default class Kernel extends EventEmitter {
         'database-connect': Symbol('database-connect'),
         'database-error': Symbol('database-error'),
         'request-error': Symbol('request-error'),
-        'route-error': Symbol('route-error'),
     }
 
     isBrowser = false
@@ -260,6 +260,7 @@ export default class Kernel extends EventEmitter {
             IException,
             moment,
             _: lodash,
+            $$: Immutable,
             app: () => {
                 return this
             },
@@ -377,7 +378,7 @@ export default class Kernel extends EventEmitter {
 
             app().logger.error(e, 'app')
 
-            return ctx.iResponse.render500(e)
+            return ctx.iResponse.renderError('core', e)
         }
 
         let server = this.__coreApp

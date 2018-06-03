@@ -120,7 +120,7 @@ export default class Router extends IClass {
             ctx.onerror = (e) => {
                 if (!e) return ;
 
-                const event = app().event('route-error')
+                const event = app().event('app-error')
                 app().emit(event, e, ctx)
             }
 

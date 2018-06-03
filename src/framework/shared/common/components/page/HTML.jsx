@@ -17,14 +17,21 @@ export default function(props={}) {
         appContent='',
         sharedPath='',
         ssr=false,
+        noHash=false,
+        webHost='',
     } = props
 
     const { jsList: vendorJsList=[], cssList: vendorCssList=[] } = require(`${sharedPath}/vendor/addon`)
     const { jsList: commonJsList=[], cssList: commonCssList=[] } = require(`${sharedPath}/common/addon`)
     const { jsList=[], cssList=[] } = require(`${sharedPath}/apps/${appName}/addon`)
 
-    const realJsList = vendorJsList.concat(commonJsList).concat(jsList)
-    const realCssList = vendorCssList.concat(commonCssList).concat(cssList)
+    let realJsList = vendorJsList.concat(commonJsList).concat(jsList)
+    let realCssList = vendorCssList.concat(commonCssList).concat(cssList)
+
+    if (noHash) {
+        realJsList = _.map(realJsList, (js) => js.replace(/(.*)\.\w*\.js$/, '$1.js'))
+        realCssList = _.map(realCssList, (css) => css.replace(/(.*)\.\w*\.css$/, '$1.css'))
+    }
 
     const jsonInitialState = JSON.stringify(initialState)
 
@@ -38,7 +45,7 @@ export default function(props={}) {
                 <title>{ title }</title>
                 {
                     _.map(realCssList, (link, index) =>
-                        <link key={ index } href={ link } rel="stylesheet" media="screen" />
+                        <link key={ index } href={ _.startsWith(link, '//') || _.startsWith(link, 'http') ? link : `${webHost}${link}` } rel="stylesheet" media="screen" />
                     )
                 }
                 <script dangerouslySetInnerHTML={ {
@@ -56,11 +63,10 @@ export default function(props={}) {
             } }></div>
             {
                 _.map(realJsList, (js, index) =>
-                    <script key={ index } type="text/javascript" src={ js }></script>
+                    <script key={ index } type="text/javascript" src={ _.startsWith(js, '//') || _.startsWith(js, 'http') ? js : `${webHost}${js}` }></script>
                 )
             }
             </body>
         </html>
     )
 }
-

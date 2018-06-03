@@ -4,7 +4,7 @@
  * @author : sunkeysun
  */
 
-import 'babel-polyfill'
+import '@web/vendor/__vendor'
 
 <-importExtra->
 

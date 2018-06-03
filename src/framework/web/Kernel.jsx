@@ -5,10 +5,10 @@
  */
 
 import lodash from 'lodash'
+import Immutable from 'immutable'
 import moment from 'moment'
 import React, { Component } from 'react'
 import ReactDom from 'react-dom'
-import { hot } from 'react-hot-loader'
 import createHistory from 'history/createBrowserHistory'
 import { createStore, applyMiddleware, combineReducers } from 'redux'
 import { routerReducer, routerMiddleware } from 'react-router-redux'
@@ -73,8 +73,8 @@ export default class Kernel extends EventEmitter {
         lodash.extend(global, {
             IException,
             moment,
-            hotLoad: hot,
             _: lodash,
+            $$: Immutable,
             app: () => this,
         })
 
