@@ -119,13 +119,18 @@ export default class Response extends IClass {
     jsonError(code, e) {
         this.header('content-type', 'application/javascript')
 
-        const jsonData = JSON.stringify({ ..._.pick(e, ['code', 'message']) })
+        const jsonObj = _.pick(e, ['code', 'message'])
+        let jsonData = ''
+
+        if (!_.isEmpty(jsonObj)) {
+            jsonData = JSON.stringify(jsonObj)
+        }
 
         if (code === 'core') {
             this._ctx.res.statusCode = 500
             return this._ctx.res.end(jsonData)
         } else {
-            return this.status(500).send(jsonData)
+            return this.status(code).send(jsonData)
         }
     }
 

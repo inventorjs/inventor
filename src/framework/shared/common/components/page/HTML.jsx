@@ -29,8 +29,8 @@ export default function(props={}) {
     let realCssList = vendorCssList.concat(commonCssList).concat(cssList)
 
     if (noHash) {
-        realJsList = _.map(realJsList, (js) => js.replace(/(.*)\.\w*\.js$/, '$1.js'))
-        realCssList = _.map(realCssList, (css) => css.replace(/(.*)\.\w*\.css$/, '$1.css'))
+        realJsList = _.map(realJsList, (js) => js.replace(/(.*)\.\w{10,}\.js$/, '$1.js'))
+        realCssList = _.map(realCssList, (css) => css.replace(/(.*)\.\w{10,}\.css$/, '$1.css'))
     }
 
     const jsonInitialState = JSON.stringify(initialState)
