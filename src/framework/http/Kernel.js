@@ -59,6 +59,7 @@ export default class Kernel extends EventEmitter {
         'database-connect': Symbol('database-connect'),
         'database-error': Symbol('database-error'),
         'request-error': Symbol('request-error'),
+        'route-error': Symbol('route-error'),
     }
 
     isBrowser = false
@@ -373,7 +374,7 @@ export default class Kernel extends EventEmitter {
         this.__coreApp.onerror = (e, ctx) => {
             const event = app().event('app-error')
             if (app().listenerCount(event) > 0) {
-                return app().emit(event, e, ctx)
+                return app().emit(event, e, ctx.iRequest, ctx.iResponse)
             }
 
             app().logger.error(e, 'app')

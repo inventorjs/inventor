@@ -117,14 +117,16 @@ export default class Router extends IClass {
         })
 
         const routeHandler = async (ctx, next) => {
-            ctx.onerror = (e) => {
-                if (!e) return ;
+            try {
+                await route.handle(ctx.iRequest, ctx.iResponse)
+            } catch (e) {
+                const event = app().event('route-error')
+                if (app().listenerCount(event) > 0) {
+                    app().emit(event, e, request, response)
+                }
 
-                const event = app().event('app-error')
-                app().emit(event, e, ctx)
+                return ctx.iResponse.render500(e)
             }
-
-            await route.handle(ctx.iRequest, ctx.iResponse)
         }
 
         const routeMiddleware = async (ctx, next) => {
