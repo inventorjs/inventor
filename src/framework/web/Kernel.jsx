@@ -5,7 +5,6 @@
  */
 
 import lodash from 'lodash'
-import Immutable from 'immutable'
 import moment from 'moment'
 import React, { Component } from 'react'
 import ReactDom from 'react-dom'
@@ -19,6 +18,14 @@ import IException from '../support/base/IException'
 import RootComponent from '../shared/app/WebRoot'
 import RequestProvider from '../request/RequestProvider'
 import version from '../version'
+
+window.global = window
+
+lodash.extend(global, {
+    IException,
+    moment,
+    _: lodash,
+})
 
 export default class Kernel extends EventEmitter {
     _request = null
@@ -68,13 +75,7 @@ export default class Kernel extends EventEmitter {
     }
 
     _registerGlobal() {
-        window.global = window
-
         lodash.extend(global, {
-            IException,
-            moment,
-            _: lodash,
-            $$: Immutable,
             app: () => this,
         })
 

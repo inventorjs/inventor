@@ -96,7 +96,7 @@ export default class Response extends IClass {
         const initialState = {
             error: {
                 code: code === 'core' ? 500 : code,
-                detail,
+                detail: _.isString(detail) ? detail : '',
             },
         }
 
@@ -119,8 +119,10 @@ export default class Response extends IClass {
     jsonError(code, e) {
         this.header('content-type', 'application/javascript')
 
-        const jsonObj = _.pick(e, ['code', 'message'])
+        const jsonObj = {}
         let jsonData = ''
+        jsonObj.code = _.get(e, 'code', '[[RUNTIME]]')
+        jsonObj.message = e.message
 
         if (!_.isEmpty(jsonObj)) {
             jsonData = JSON.stringify(jsonObj)

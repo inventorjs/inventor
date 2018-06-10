@@ -7,7 +7,6 @@
 import EventEmitter from 'events'
 import lodash from 'lodash'
 import moment from 'moment'
-import Immutable from 'immutable'
 import CoreApp from 'koa'
 import coreBody from 'koa-body'
 
@@ -24,6 +23,12 @@ import RequestTimeoutMiddleware from './middlewares/RequestTimeout'
 import IRequestResponseMiddleware from './middlewares/IRequestResponse'
 import { config } from '../support/helpers'
 import version from '../version'
+
+lodash.extend(global, {
+    IException,
+    moment,
+    _: lodash,
+})
 
 export default class Kernel extends EventEmitter {
     __coreApp = new CoreApp()
@@ -258,10 +263,6 @@ export default class Kernel extends EventEmitter {
 
     __registerGlobal() {
         lodash.extend(global, {
-            IException,
-            moment,
-            _: lodash,
-            $$: Immutable,
             app: () => {
                 return this
             },

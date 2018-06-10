@@ -125,6 +125,8 @@ export default class Router extends IClass {
                     app().emit(event, e, request, response)
                 }
 
+                app().logger.error(e, 'route')
+
                 return ctx.iResponse.render500(e)
             }
         }
