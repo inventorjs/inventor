@@ -122,7 +122,7 @@ export default class Router extends IClass {
             } catch (e) {
                 const event = app().event('route-error')
                 if (app().listenerCount(event) > 0) {
-                    app().emit(event, e, request, response)
+                    app().emit(event, e, ctx.iRequest, ctx.iResponse)
                 }
 
                 app().logger.error(e, 'route')

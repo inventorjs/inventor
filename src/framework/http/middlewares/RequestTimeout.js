@@ -26,7 +26,7 @@ export default async function RequestTimeout(ctx, next) {
 
             const event = app().event('app-timeout')
             if (app().listenerCount(event) > 0) {
-                return app().emit(event, e)
+                return app().emit(event, e, ctx.iRequest, ctx.iResponse)
             }
 
             throw e
