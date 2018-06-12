@@ -16,6 +16,7 @@ import FileManagerPlugin from 'filemanager-webpack-plugin'
 import autoprefixer from 'autoprefixer'
 import ProgressBarPlugin from 'progress-bar-webpack-plugin'
 import HappyPack from 'happypack'
+import HashOutput from 'webpack-plugin-hash-output'
 
 const happyThreadPool = HappyPack.ThreadPool({ size: os.cpus().length })
 
@@ -218,6 +219,8 @@ export default class WebpackConfigure {
                     root: path.join(this.buildPath, `/web/${this.buildMode}/`),
                 })
             )
+
+            webpackConfig.plugins.push(new HashOutput())
         } else {
             webpackConfig.devtool = 'cheap-module-eval-source-map'
             webpackConfig.plugins.push(new webpack.HotModuleReplacementPlugin())
