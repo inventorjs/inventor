@@ -1,8 +1,7 @@
-import Kernel from './framework/web/Kernel'
-import * as utils from './framework/web/modules/utils'
-
-export default Kernel
-
-export {
-    utils,
-}
+/**
+ * web 导出
+ *
+ * @author : sunkeysun
+ */
+export default from './framework/web/Kernel'
+export * as utils from './framework/web/modules/utils'

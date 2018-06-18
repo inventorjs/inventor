@@ -1,6 +1,6 @@
 {
   "name": "inventor",
-  "version": "0.0.44",
+  "version": "0.0.45",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -31,7 +31,7 @@
     "moment": "^2.20.1",
     "mysql2": "^1.5.3",
     "query-string": "^6.0.0",
-    "react": "^16.2.0",
+    "react": "^16.4.1",
     "react-dom": "^16.2.0",
     "react-hot-loader": "^4.0.0-beta.17",
     "react-redux": "^5.0.6",
