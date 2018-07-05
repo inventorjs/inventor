@@ -38,10 +38,11 @@ export default function(props={}) {
     return (
         <html>
             <head>
-                <meta httpEquiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-                <meta httpEquiv="Content-Type" content="text/html; charset=UTF-8" />
                 <meta httpEquiv="keywords" content={ keywords } />
                 <meta httpEquiv="description" content={ description } />
+                <meta httpEquiv="Content-Type" content="text/html; charset=UTF-8" />
+                <meta httpEquiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+                <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1" />
                 <title>{ title }</title>
                 {
                     _.map(realCssList, (link, index) =>

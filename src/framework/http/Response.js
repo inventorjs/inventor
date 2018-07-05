@@ -100,7 +100,7 @@ export default class Response extends IClass {
             },
         }
 
-        let errContent = ''
+        let errContent = 'Internal Server Error'
 
         try {
             errContent = this._render({ appPath, appName, initialState, isError: true })
