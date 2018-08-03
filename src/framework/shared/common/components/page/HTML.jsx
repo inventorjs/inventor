@@ -19,6 +19,8 @@ export default function(props={}) {
         ssr=false,
         noHash=false,
         webHost='',
+        jsList,
+        cssList,
     } = props
 
     const { jsList: vendorJsList=[], cssList: vendorCssList=[] } = require(`${sharedPath}/vendor/addon`)
@@ -27,6 +29,14 @@ export default function(props={}) {
 
     let realJsList = vendorJsList.concat(commonJsList).concat(jsList)
     let realCssList = vendorCssList.concat(commonCssList).concat(cssList)
+
+    if (!!jsList.length) {
+        realJsList = jsList
+    }
+
+    if (!!cssList.length) {
+        realCssList = cssList
+    }
 
     if (noHash) {
         realJsList = _.map(realJsList, (js) => js.replace(/(.*)\.\w{10,}\.js$/, '$1.js'))

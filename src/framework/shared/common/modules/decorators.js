@@ -18,6 +18,12 @@ export function interfaceModel(interfaceConfig) {
             }
         }
 
+        if (_.isUndefined(Target._transRes)) {
+            Target._transRes = function(res) {
+                return res
+            }
+        }
+
         if (_.isUndefined(Target.success)) {
             Target.success = function(res) {
                 return res.code === 0
@@ -45,6 +51,7 @@ export function interfaceModel(interfaceConfig) {
             if (_.isUndefined(Target[apiName])) {
                 Target[apiName] = function(data={}, options={}) {
                     return this.__sendRequest(apiConfig, data, options)
+                               .then(this._transRes)
                 }
             }
         })

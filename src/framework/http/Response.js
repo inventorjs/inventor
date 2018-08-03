@@ -186,6 +186,8 @@ export default class Response extends IClass {
             title: _.get(this.locals, 'PAGE_TITLE', ''),
             keywords: _.get(this.locals, 'PAGE_KEYWORDS', ''),
             description: _.get(this.locals, 'PAGE_DESCRIPTION', ''),
+            jsList: _.get(this.locals, 'JS_LIST', []),
+            cssList: _.get(this.locals, 'CSS_LIST', []),
             initialState: appState,
             nodeEnv: process.env.NODE_ENV,
             appName: appName,
