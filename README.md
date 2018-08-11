@@ -1,8 +1,8 @@
 # Inventor - 全栈型现代 web 框架
-基于 mvc 架构模式，借鉴众多优秀 php框架(CI, Laravel等)的设计思想，使用 koa2 作为 web 处理核心进行封装，对外暴露类 express 的接口及中间件书写方式(express 接口相对于 koa2 更加标准易用，故进行封装)，路由则借鉴了 Laravel 强大的路由系统，加入路由组的概念，提供更合理的路由规划方式。web 端则采用 react 的同构开发方式，做到前后端代码共用，以及良好的体验和更便捷的开发方式，业务代码完全不需要理解核心工作方式，只要遵循业务框架编写方式，即可构建项目。
+基于 mvc 架构模式，借鉴众多优秀 php 框架(CI, Laravel等)的设计方式，使用 koa2 作为 http 处理核心进行封装，路由则借鉴了 Laravel 强大的路由系统，加入路由组的概念，提供更合理的路由规划方式。web 端则采用 react 的同构开发方式。
 
 ### 路由
-路由系统借鉴 Laraval 路由系统对 koa-router 进行了封装，加入了 group 和 resource 路由的概念更加强大易用。采用 restfull 路由定义方式，更有效的控制资源。路由默认采用控制器方法的定义方式(controler@action)。
+路由系统借鉴 Laraval 路由系统对 koa-router 进行了封装，加入了 group 和 resource 路由的概念更加强大易用。采用 restful api 路由定义方式，更有效的控制资源。路由默认采用控制器方法的定义方式(controler@action)。
 resource 路由会预定义资源操作的5个路由
 ```
     router.resource('/resource', 'ResourceController')
