@@ -10,8 +10,6 @@ import uuid from 'uuid/v1'
 
 import IClass from '../support/base/IClass'
 
-const CancelToken = axios.CancelToken
-
 const LOG_CATEGORY = 'request'
 
 export default class extends IClass {
@@ -234,17 +232,11 @@ export default class extends IClass {
             _.unset(targetConfig, 'params')
         }
 
-        const cancelSource = CancelToken.source()
-
-        targetConfig.cancelToken = cancelSource.token
+        const requestId = uuid()
 
         const raceKey = config.raceKey
         if (raceKey) {
-            if (this.raceMap[raceKey]) {
-                this.raceMap[raceKey].cancel()
-            } else {
-                this.raceMap[raceKey] = cancelSource
-            }
+            this._raceMap[raceKey] = requestId
         }
 
         const startTime = Date.now()
@@ -255,10 +247,6 @@ export default class extends IClass {
         })
 
         instance.interceptors.response.use((response) => {
-            if (raceKey && this.raceMap[raceKey]) {
-                this.raceMap[raceKey] = null
-            }
-
             const timeCost = Date.now() - startTime
             this._logInfo(response, timeCost)
 
@@ -281,6 +269,11 @@ export default class extends IClass {
 
         try {
             const res = await instance.request(targetConfig)
+            if (raceKey) {
+                if (this._raceMap[raceKey] && this._raceMap[raceKey] !== requestId) {
+                    return new Promise(() => {})
+                }
+            }
             return res
         } catch (e) {
             if (raceKey && this.raceMap[raceKey]) {
