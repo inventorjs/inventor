@@ -7,7 +7,7 @@
 import Request from '../Request'
 import Response from '../Response'
 
-export default async function IRequestResponse(ctx, next) {
+export default async function iRequestResponse(ctx, next) {
     ctx.iRequest = new Request(ctx)
     ctx.iResponse = new Response(ctx)
 

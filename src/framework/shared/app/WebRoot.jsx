@@ -5,8 +5,9 @@
  */
 
 import React, { Component } from 'react'
-import { Provider } from 'react-redux'
-import { ConnectedRouter } from 'react-router-redux'
+import createBrowserHistory from 'history/createBrowserHistory'
+import { Provider } from 'mobx-react'
+import { BrowserRouter as Router, Route } from 'react-router-dom'
 
 export default class extends Component {
     render() {
@@ -14,9 +15,9 @@ export default class extends Component {
 
         return (
             <Provider store={ store }>
-                <ConnectedRouter history={ history }>
-                    <App />
-                </ConnectedRouter>
+                <Router history={ history }>
+                    <Route component={ App } />
+                </Router>
             </Provider>
         )
     }

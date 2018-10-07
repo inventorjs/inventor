@@ -122,7 +122,7 @@ export default class extends IClass {
         }
 
         return new Promise((resolve, reject) => {
-            const targetConfig = { ...this._jsonpConfig, ..._.pick(config, _.keys(this._jsonpConfig)) }
+            const targetConfig = { ...this._jsonpConfig, ..._.pick(requestConfig, _.keys(this._jsonpConfig)), ..._.pick(config, _.keys(this._jsonpConfig)) }
             const jsonpId = targetConfig.prefix + (++this._jsonpCount%_.toSafeInteger(_.pad('', 20, '9')))
             let script = null
 
@@ -213,11 +213,12 @@ export default class extends IClass {
     }
 
     async _send(config) {
-        const targetConfig = _.extend({}, this._defaultConfig, _.pick(config, _.keys(this._defaultConfig)))
-        const customConfig = _.extend({}, this._defaultCustomConfig, _.pick(config, _.keys(this._defaultCustomConfig)))
+        const requestConfig = app().config('request')
+        const targetConfig = { ...this._defaultConfig, ..._.pick(requestConfig, _.keys(this._defaultConfig)), ..._.pick(config, _.keys(this._defaultConfig)) }
+        const customConfig = { ...this._defaultCustomConfig, ..._.pick(requestConfig, _.keys(this._defaultCustomConfig)), ..._.pick(config, _.keys(this._defaultCustomConfig)) }
 
         if (targetConfig.headers) {
-            targetConfig.headers = _.defaults({}, this._defaultConfig.headers, targetConfig.headers)
+            targetConfig.headers = _.defaults({}, this._defaultConfig.headers, requestConfig.headers, targetConfig.headers)
         }
 
         if (!this._config.autoUA) {

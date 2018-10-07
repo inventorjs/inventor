@@ -5,8 +5,8 @@
  */
 
 import React, { Component } from 'react'
-import { Provider } from 'react-redux'
-import { StaticRouter } from 'react-router-dom'
+import { Provider } from 'mobx-react'
+import { StaticRouter as Router, Route } from 'react-router-dom'
 
 export default class extends Component {
     render() {
@@ -14,9 +14,9 @@ export default class extends Component {
 
         return (
             <Provider store={ store }>
-                <StaticRouter location={ location } context={ context }>
-                    <App />
-                </StaticRouter>
+                <Router location={ location } context={ context }>
+                    <Route component={ App } />
+                </Router>
             </Provider>
         )
     }

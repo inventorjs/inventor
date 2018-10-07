@@ -6,7 +6,7 @@
 
 const DEFAULT_TIMEOUT = 3000
 
-export default async function RequestTimeout(ctx, next) {
+export default async function requestTimeout(ctx, next) {
     const timeout = _.get(app().config('app'), 'timeout', DEFAULT_TIMEOUT)
 
     const timeoutValue = Symbol('timeout')

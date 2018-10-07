@@ -8,10 +8,9 @@ import lodash from 'lodash'
 import moment from 'moment'
 import React, { Component } from 'react'
 import ReactDom from 'react-dom'
-import createHistory from 'history/createBrowserHistory'
+import createBrowserHistory from 'history/createBrowserHistory'
 import { createStore, applyMiddleware, combineReducers } from 'redux'
-import { routerReducer, routerMiddleware } from 'react-router-redux'
-import promiseMiddleware from 'redux-promise-middleware'
+import { RouterStore, syncHistoryWithStore } from 'mobx-react-router'
 import EventEmitter from 'eventemitter3'
 
 import IException from '../support/base/IException'
@@ -33,17 +32,17 @@ export default class Kernel extends EventEmitter {
 
     _webpackConfig = ''
     _App = null
-    _reducers = {}
+    _Store = null
     _appConfig = {}
 
     isBrowser = true
 
-    constructor({ webpackConfig, appConfig, App, reducers }) {
+    constructor({ webpackConfig, appConfig, App, Store }) {
         super()
 
         this._webpackConfig = webpackConfig
         this._App = App
-        this._reducers = reducers
+        this._Store = Store
         this._appConfig = appConfig
 
         this._registerGlobal()
@@ -92,29 +91,21 @@ export default class Kernel extends EventEmitter {
         const initialState = global.__INITIAL_STATE__
         const ssr = global.__SSR__
         const nodeEnv = global.__NODE_ENV__
-
-        const history = createHistory()
-
         const App = this._App
 
         const buildMode = nodeEnv === 'local' ? 'debug' : 'release'
         const config = this._webpackConfig[buildMode]
 
-        const variables = {
-            staticPath: config.publicPath,
+        const browserHistory = createBrowserHistory()
+        const routing = new RouterStore()
+        const history = syncHistoryWithStore(browserHistory, routing)
+
+        let store = new this._Store(initialState)
+
+        store = {
+            ...store,
+            routing,
         }
-
-        const rootReducer = combineReducers({
-            ...this._reducers,
-            variables: (state=variables) => state,
-            routing: routerReducer,
-        })
-
-        const middleware = applyMiddleware(
-                                promiseMiddleware()
-                            )
-
-        const store = createStore(rootReducer, initialState)
 
         let render = ReactDom.render
         if (!!ssr) {

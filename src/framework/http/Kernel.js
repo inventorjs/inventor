@@ -18,11 +18,12 @@ import DatabaseProvider from '../database/DatabaseProvider'
 import SessionProvider from '../session/SessionProvider'
 import RoutingProvider from '../routing/RoutingProvider'
 import RequestProvider from '../request/RequestProvider'
-import RequestLogMiddleware from './middlewares/RequestLog'
-import RequestTimeoutMiddleware from './middlewares/RequestTimeout'
-import IRequestResponseMiddleware from './middlewares/IRequestResponse'
+import requestLogMiddleware from './middlewares/requestLog'
+import requestTimeoutMiddleware from './middlewares/requestTimeout'
+import requestResponseMiddleware from './middlewares/requestResponse'
 import { config } from '../support/helpers'
 import version from '../version'
+import { normalizeMiddleware } from '../support/helpers'
 
 lodash.extend(global, {
     IException,
@@ -44,6 +45,8 @@ export default class Kernel extends EventEmitter {
     __envs = [ 'local', 'development', 'test', 'production' ]
 
     __appConfig = {}
+
+    _middlewares = []
 
     __events = {
         'process-uncaughtException': Symbol('process-uncaughtException'),
@@ -220,11 +223,12 @@ export default class Kernel extends EventEmitter {
     }
 
     __initBaseMiddleware() {
-        this.__coreApp.use(RequestTimeoutMiddleware)
-        this.__coreApp.use(IRequestResponseMiddleware)
+        this.__coreApp.use(requestTimeoutMiddleware)
+        this.__coreApp.use(requestResponseMiddleware)
         this.__coreApp.use(coreBody({ multipart: true }))
-        this.__coreApp.use(RequestLogMiddleware)
+        this.__coreApp.use(requestLogMiddleware)
         this.__initSessionMiddleware()
+        this.__initCustomMiddlewares()
         this.__initRoutingMiddleware()
     }
 
@@ -255,6 +259,16 @@ export default class Kernel extends EventEmitter {
     __initSessionMiddleware() {
         const session = ( new SessionProvider() ).register()
         this.__coreApp.use(session(this.__coreApp))
+    }
+
+    __initCustomMiddlewares() {
+        if (!this._middlewares.length) {
+            return false
+        }
+
+        _.each(this._middlewares, (Middleware) => {
+            this.__coreApp.use(normalizeMiddleware(Middleware.handle.bind(Middleware)))
+        })
     }
 
     __registerRequestProvider() {

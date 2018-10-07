@@ -4,12 +4,12 @@
  * @author : sunkeysun
  */
 import React from 'react'
-import { routerReducer, routerMiddleware } from 'react-router-redux'
 import { renderToStaticMarkup, renderToString } from 'react-dom/server'
-import { createStore, applyMiddleware, combineReducers } from 'redux'
-
+import { useStaticRendering } from 'mobx-react'
 import IClass from '../support/base/IClass'
 import HTML from '../shared/common/components/page/HTML'
+
+useStaticRendering(true)
 
 export default class Response extends IClass {
     _ctx = null
@@ -90,7 +90,7 @@ export default class Response extends IClass {
             return this.jsonError(code, detail)
         }
 
-        const appPath = `${app().sharedPath}/apps/common`
+        const appPath = `${app().sharedPath}/app/common`
         const appName = 'common'
 
         const initialState = {
@@ -103,7 +103,7 @@ export default class Response extends IClass {
         let errContent = 'Internal Server Error'
 
         try {
-            errContent = this._render({ appPath, appName, initialState, isError: true })
+            errContent = this._render({ appPath, appName, initialState, autoSend: true })
         } catch(e) {
             app().logger.error(e)
         }
@@ -136,7 +136,7 @@ export default class Response extends IClass {
         }
     }
 
-    _render({ appPath, appName='', initialState={}, isError=false }) {
+    _render({ appPath, appName='', initialState={}, autoSend=true }) {
         const appConfig = app().config('app')
 
         let appContent = ''
@@ -145,7 +145,7 @@ export default class Response extends IClass {
         if (!!appConfig.ssr) {
             const RootComponent = require('../shared/app/ServerRoot').default
             const App = require(`${appPath}/App`).default
-            const reducers = require(`${appPath}/redux`).default
+            const Store = require(`${appPath}/store`).default
 
             const routing = {
                 location: {
@@ -153,21 +153,12 @@ export default class Response extends IClass {
                 }
             }
 
-            const webpackConfig = require(`${app().webpackPath}/config`).default
+            const webpackConfig = require(`${app().webpackPath}/config/common`).default
             const buildMode = process.env.NODE_ENV === 'local' ? 'debug' : 'release'
             const config = webpackConfig[buildMode]
 
-            const variables = {
-                staticPath: config.publicPath,
-            }
-
-            const rootReducer = combineReducers({
-                ...reducers,
-                variables: (state=variables) => state,
-                routing: (state=routing) => state,
-            })
-
-            const store = createStore(rootReducer, initialState)
+            let store = new Store(initialState)
+            store = { ...store, routing }
 
             const rootState = {
                 App: App,
@@ -177,8 +168,6 @@ export default class Response extends IClass {
             }
 
             appContent = renderToString(<RootComponent { ...rootState } />)
-
-            appState = store.getState()
         }
 
         const props = {
@@ -188,7 +177,7 @@ export default class Response extends IClass {
             description: _.get(this.locals, 'PAGE_DESCRIPTION', ''),
             jsList: _.get(this.locals, 'JS_LIST', []),
             cssList: _.get(this.locals, 'CSS_LIST', []),
-            initialState: appState,
+            initialState: initialState,
             nodeEnv: process.env.NODE_ENV,
             appName: appName,
             appContent: appContent,
@@ -199,7 +188,7 @@ export default class Response extends IClass {
 
         let htmlContent = renderToStaticMarkup(<HTML { ...props } />)
 
-        if (isError) {
+        if (!autoSend) {
             return htmlContent
         }
 
@@ -211,7 +200,7 @@ export default class Response extends IClass {
     renderApp(appName, initialState={}) {
         this.header('content-type', 'text/html')
 
-        const appPath = `${app().sharedPath}/apps/${appName}`
+        const appPath = `${app().sharedPath}/app/${appName}`
 
         return this._render({ appPath, appName, initialState })
     }

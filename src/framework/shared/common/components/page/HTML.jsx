@@ -25,7 +25,7 @@ export default function(props={}) {
 
     const { jsList: vendorJsList=[], cssList: vendorCssList=[] } = require(`${sharedPath}/vendor/addon`)
     const { jsList: commonJsList=[], cssList: commonCssList=[] } = require(`${sharedPath}/common/addon`)
-    const { jsList: appJsList=[], cssList: appCssList=[] } = require(`${sharedPath}/apps/${appName}/addon`)
+    const { jsList: appJsList=[], cssList: appCssList=[] } = require(`${sharedPath}/app/${appName}/addon`)
 
     let realJsList = vendorJsList.concat(commonJsList).concat(appJsList)
     let realCssList = vendorCssList.concat(commonCssList).concat(appCssList)

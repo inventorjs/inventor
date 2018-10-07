@@ -4,7 +4,7 @@
  * @author : sunkeysun
  */
 
-export default async function RequestLog(ctx, next) {
+export default async function requestLog(ctx, next) {
     const startTime = Date.now()
 
     await next()
