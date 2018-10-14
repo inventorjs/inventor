@@ -27,25 +27,29 @@ lodash.extend(global, {
 })
 
 export default class Kernel extends EventEmitter {
-    _request = null
-    _logger = console
+    __request = null
+    __logger = console
 
-    _webpackConfig = ''
-    _App = null
-    _Store = null
-    _appConfig = {}
+    __webpackConfig = ''
+    __App = null
+    __Store = null
+    __appConfig = {}
+
+    __events = {
+        'request-error': Symbol('request-error'),
+    }
 
     isBrowser = true
 
     constructor({ webpackConfig, appConfig, App, Store }) {
         super()
 
-        this._webpackConfig = webpackConfig
-        this._App = App
-        this._Store = Store
-        this._appConfig = appConfig
+        this.__webpackConfig = webpackConfig
+        this.__App = App
+        this.__Store = Store
+        this.__appConfig = appConfig
 
-        this._registerGlobal()
+        this.__registerGlobal()
     }
 
     get version() {
@@ -53,54 +57,55 @@ export default class Kernel extends EventEmitter {
     }
 
     get request() {
-        return this._request
+        return this.__request
     }
 
     get logger() {
-        return () => {
-            return this._logger
-        }
+        return this.__logger
     }
 
     get appConfig() {
-        return this._appConfig
+        return this.__appConfig
     }
 
-    _registerBaseProviders() {
-        const seqHeader = this.appConfig.requestSeqHeader
-        const logRequest = false
-        const autoUA = true
-        this._request = (new RequestProvider()).register({ logRequest, autoUA, seqHeader })
+    event(eventName) {
+        if (!this.__events[eventName]) {
+            throw new IException(`event ${eventName} not supported, you can use app().events get event list`)
+        }
+
+        return this.__events[eventName]
     }
 
-    _registerGlobal() {
+    get events() {
+        return _.keys(this.__events)
+    }
+
+    __registerBaseProviders() {
+        this.__request = (new RequestProvider()).register(this.appConfig.request)
+    }
+
+    __registerGlobal() {
         lodash.extend(global, {
             app: () => this,
         })
-
-        global.onerror = (msg, url, line) => {
-            console.log(msg)
-            console.log(url)
-            console.log(line)
-        }
     }
 
     run() {
-        this._registerBaseProviders()
+        this.__registerBaseProviders()
 
         const initialState = global.__INITIAL_STATE__
         const ssr = global.__SSR__
         const nodeEnv = global.__NODE_ENV__
-        const App = this._App
+        const App = this.__App
 
         const buildMode = nodeEnv === 'local' ? 'debug' : 'release'
-        const config = this._webpackConfig[buildMode]
+        const config = this.__webpackConfig[buildMode]
 
         const browserHistory = createBrowserHistory()
         const routing = new RouterStore()
         const history = syncHistoryWithStore(browserHistory, routing)
 
-        let store = new this._Store(initialState)
+        let store = new this.__Store(initialState)
 
         store = {
             ...store,

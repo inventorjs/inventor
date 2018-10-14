@@ -15,9 +15,10 @@ const DEFAULT_TIMEOUT = 10 * 1000
 
 export default class extends IClass {
     _config = {
-        logRequest: true,
-        autoUA: false,
-        seqHeader: false,
+        log: false,
+        ua: '',
+        requestId: false,
+        config: {},
     }
 
     _jsonpCount = 10000
@@ -180,7 +181,7 @@ export default class extends IClass {
     }
 
     _logInfo(res, timeCost) {
-        if (!this._config.logRequest) {
+        if (!this._config.log) {
             return false
         }
 
@@ -188,7 +189,7 @@ export default class extends IClass {
         let response = res
         let data = _.get(res, 'config.data', {})
 
-        if (_.isError(response)) {
+        if (!!_.isError(response)) {
             logLevel = 'error'
             if (!_.isUndefined(res.response)) {
                 response = res.response
@@ -214,7 +215,7 @@ export default class extends IClass {
     }
 
     async _send(config) {
-        const requestConfig = app().config('request')
+        const requestConfig = _.get(this._config.request, 'config', {})
         const targetConfig = { ...this._defaultConfig, ..._.pick(requestConfig, _.keys(this._defaultConfig)), ..._.pick(config, _.keys(this._defaultConfig)) }
         const customConfig = { ...this._defaultCustomConfig, ..._.pick(requestConfig, _.keys(this._defaultCustomConfig)), ..._.pick(config, _.keys(this._defaultCustomConfig)) }
 
@@ -222,12 +223,18 @@ export default class extends IClass {
             targetConfig.headers = _.defaults({}, this._defaultConfig.headers, requestConfig.headers, targetConfig.headers)
         }
 
-        if (!this._config.autoUA) {
-            targetConfig.headers['User-Agent'] = app().version
+        if (!!this._config.ua) {
+            targetConfig.headers['User-Agent'] = this._config.ua
         }
 
-        if (this._config.seqHeader) {
-            targetConfig.headers[this._config.seqHeader] = uuid()
+        if (!!_.isBoolean(this._config.requestId)) {
+            if (!!this._config.requestId) {
+                targetConfig.headers[this._config.seqHeader] = uuid()
+            }
+        } else if (!!_.isFunction(this._config.requestId)) {
+            targetConfig.headers[this._config.seqHeader] = this._config.requestId()
+        } else if (!!_.isString(this._config.requestId)) {
+            targetConfig.headers[this._config.seqHeader] = this._config.requestId
         }
 
         if (!~['get', 'delete'].indexOf(_.toLower(config.method))) {
@@ -285,17 +292,16 @@ export default class extends IClass {
             const timeCost = Date.now() - startTime
             this._logInfo(e, timeCost)
 
-            let code = _.get(e, 'code', '')
+            let code = _.get(e, 'code', 'http-error')
             if (app().isBrowser) {
                 code = `[[WebRequest]]${code}`
             } else {
                 code = `[[Request]]${code}`
             }
 
-            const exception = new IException(e)
-            exception.code = code
+            e.code = code
 
-            throw exception
+            throw e
         }
     }
 }

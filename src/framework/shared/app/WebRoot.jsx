@@ -5,9 +5,8 @@
  */
 
 import React, { Component } from 'react'
-import createBrowserHistory from 'history/createBrowserHistory'
 import { Provider } from 'mobx-react'
-import { BrowserRouter as Router, Route } from 'react-router-dom'
+import { Router, Route } from 'react-router-dom'
 
 export default class extends Component {
     render() {

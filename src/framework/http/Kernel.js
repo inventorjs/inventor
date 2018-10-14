@@ -206,6 +206,10 @@ export default class Kernel extends EventEmitter {
         return this.__events[eventName]
     }
 
+    get events() {
+        return _.keys(this.__events)
+    }
+
     __initEnv() {
         const env = process.env.NODE_ENV
 
@@ -272,7 +276,8 @@ export default class Kernel extends EventEmitter {
     }
 
     __registerRequestProvider() {
-        this.__request = ( new RequestProvider() ).register()
+        const request = app().config('request')
+        this.__request = ( new RequestProvider({ request }) ).register()
     }
 
     __registerGlobal() {
