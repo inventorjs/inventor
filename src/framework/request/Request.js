@@ -11,6 +11,7 @@ import uuid from 'uuid/v1'
 import IClass from '../support/base/IClass'
 
 const LOG_CATEGORY = 'request'
+const DEFAULT_TIMEOUT = 10 * 1000
 
 export default class extends IClass {
     _config = {
@@ -22,7 +23,7 @@ export default class extends IClass {
     _jsonpCount = 10000
 
     _jsonpConfig = {
-        timeout: 10000,
+        timeout: DEFAULT_TIMEOUT,
         prefix: 'jsonp',
         callback: 'callback',
     }
@@ -40,7 +41,7 @@ export default class extends IClass {
         xsrfCookieName: 'CSRF-TOKEN',
         xsrfHeaderName: 'X-Csrf-Token',
         maxContentLength: 10 * 1024 * 1024,
-        timeout: 10 * 1000,
+        timeout: DEFAULT_TIMEOUT,
         maxRedirects: 0,
         transformRequest: [],
         transformResponse: [],
