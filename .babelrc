@@ -1,10 +1,9 @@
 {
     "presets": ["react", "env", "stage-0"],
     "plugins": [
-       "transform-decorators-legacy",
        ["transform-runtime", {
             "polyfill": false,
-            "regenerator": true
+            "regenerator": false
        }]
     ]
 }

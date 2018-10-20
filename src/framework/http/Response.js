@@ -147,7 +147,7 @@ export default class Response extends IClass {
             const App = require(`${appPath}/App`).default
             const Store = require(`${appPath}/store`).default
 
-            const routing = {
+            const $routing = {
                 location: {
                     pathname: this._ctx.request.path,
                 }
@@ -157,8 +157,12 @@ export default class Response extends IClass {
             const buildMode = process.env.NODE_ENV === 'local' ? 'debug' : 'release'
             const config = webpackConfig[buildMode]
 
+            const $constants = {
+                PUBLIC_PATH: config.publicPath,
+            }
+
             let store = new Store(initialState)
-            store = { ...store, routing }
+            _.extend(store, { $routing, $constants })
 
             const rootState = {
                 App: App,

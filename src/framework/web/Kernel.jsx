@@ -27,15 +27,15 @@ lodash.extend(global, {
 })
 
 export default class Kernel extends EventEmitter {
-    __request = null
-    __logger = console
+    _request = null
+    _logger = console
 
-    __webpackConfig = ''
-    __App = null
-    __Store = null
-    __appConfig = {}
+    _webpackConfig = ''
+    _App = null
+    _Store = null
+    _appConfig = {}
 
-    __events = {
+    _events = {
         'request-error': Symbol('request-error'),
     }
 
@@ -44,12 +44,12 @@ export default class Kernel extends EventEmitter {
     constructor({ webpackConfig, appConfig, App, Store }) {
         super()
 
-        this.__webpackConfig = webpackConfig
-        this.__App = App
-        this.__Store = Store
-        this.__appConfig = appConfig
+        this._webpackConfig = webpackConfig
+        this._App = App
+        this._Store = Store
+        this._appConfig = appConfig
 
-        this.__registerGlobal()
+        this._registerGlobal()
     }
 
     get version() {
@@ -57,60 +57,59 @@ export default class Kernel extends EventEmitter {
     }
 
     get request() {
-        return this.__request
+        return this._request
     }
 
     get logger() {
-        return this.__logger
+        return this._logger
     }
 
     get appConfig() {
-        return this.__appConfig
+        return this._appConfig
     }
 
     event(eventName) {
-        if (!this.__events[eventName]) {
+        if (!this._events[eventName]) {
             throw new IException(`event ${eventName} not supported, you can use app().events get event list`)
         }
 
-        return this.__events[eventName]
+        return this._events[eventName]
     }
 
     get events() {
-        return _.keys(this.__events)
+        return _.keys(this._events)
     }
 
-    __registerBaseProviders() {
-        this.__request = (new RequestProvider()).register(this.appConfig.request)
+    _registerBaseProviders() {
+        this._request = (new RequestProvider()).register(this.appConfig.request)
     }
 
-    __registerGlobal() {
+    _registerGlobal() {
         lodash.extend(global, {
             app: () => this,
         })
     }
 
     run() {
-        this.__registerBaseProviders()
+        this._registerBaseProviders()
 
         const initialState = global.__INITIAL_STATE__
         const ssr = global.__SSR__
         const nodeEnv = global.__NODE_ENV__
-        const App = this.__App
+        const App = this._App
 
         const buildMode = nodeEnv === 'local' ? 'debug' : 'release'
-        const config = this.__webpackConfig[buildMode]
+        const config = this._webpackConfig[buildMode]
 
         const browserHistory = createBrowserHistory()
-        const routing = new RouterStore()
-        const history = syncHistoryWithStore(browserHistory, routing)
-
-        let store = new this.__Store(initialState)
-
-        store = {
-            ...store,
-            routing,
+        const $routing = new RouterStore()
+        const history = syncHistoryWithStore(browserHistory, $routing)
+        const $constants = {
+            PUBLIC_PATH: config.publicPath,
         }
+
+        let store = new this._Store(initialState)
+        _.extend(store, { $routing, $constants })
 
         let render = ReactDom.render
         if (!!ssr) {
