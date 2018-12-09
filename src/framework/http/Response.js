@@ -4,15 +4,11 @@
  * @author : sunkeysun
  */
 import React from 'react'
-import { renderToStaticMarkup, renderToString } from 'react-dom/server'
-import { useStaticRendering } from 'mobx-react'
 import IClass from '../support/base/IClass'
-import HTML from '../shared/common/components/page/HTML'
-
-useStaticRendering(true)
 
 export default class Response extends IClass {
     _ctx = null
+    viewEngine = null
 
     _locals = {}
 
@@ -24,6 +20,9 @@ export default class Response extends IClass {
         super()
 
         this._ctx = ctx
+        const viewConfig = app().config('app').view
+
+        this.viewEngine = require(`inventor-view-${viewConfig.engine}/server`)
     }
 
     header(field, value) {
@@ -103,7 +102,7 @@ export default class Response extends IClass {
         let errContent = 'Internal Server Error'
 
         try {
-            errContent = this._render({ appPath, appName, initialState, autoSend: true })
+            errContent = this.renderString({ appName, initialState })
         } catch(e) {
             app().logger.error(e)
         }
@@ -136,76 +135,18 @@ export default class Response extends IClass {
         }
     }
 
-    _render({ appPath, appName='', initialState={}, autoSend=true }) {
-        const appConfig = app().config('app')
-
-        let appContent = ''
-        let appState = initialState
-
-        if (!!appConfig.ssr) {
-            const RootComponent = require('../shared/app/ServerRoot').default
-            const App = require(`${appPath}/App`).default
-            const Store = require(`${appPath}/store`).default
-
-            const $routing = {
-                location: {
-                    pathname: this._ctx.request.path,
-                }
-            }
-
-            const webpackConfig = require(`${app().webpackPath}/config/common`).default
-            const buildMode = process.env.NODE_ENV === 'local' ? 'debug' : 'release'
-            const config = webpackConfig[buildMode]
-
-            const $constants = {
-                PUBLIC_PATH: config.publicPath,
-            }
-
-            let store = new Store(initialState)
-            _.extend(store, { $routing, $constants })
-
-            const rootState = {
-                App: App,
-                store: store,
-                context: {},
-                location: this._ctx.request.path,
-            }
-
-            appContent = renderToString(<RootComponent { ...rootState } />)
-        }
-
-        const props = {
-            ssr: appConfig.ssr,
-            title: _.get(this.locals, 'PAGE_TITLE', ''),
-            keywords: _.get(this.locals, 'PAGE_KEYWORDS', ''),
-            description: _.get(this.locals, 'PAGE_DESCRIPTION', ''),
-            jsList: _.get(this.locals, 'JS_LIST', []),
-            cssList: _.get(this.locals, 'CSS_LIST', []),
-            initialState: initialState,
-            nodeEnv: process.env.NODE_ENV,
-            appName: appName,
-            appContent: appContent,
-            sharedPath: app().sharedPath,
-            noHash: appConfig.noHash,
-            webHost: appConfig.webHost,
-        }
-
-        let htmlContent = renderToStaticMarkup(<HTML { ...props } />)
-
-        if (!autoSend) {
-            return htmlContent
-        }
-
-        htmlContent = `<!DOCTYPE html>${htmlContent}`
-
-        return this.send(htmlContent)
+    render(...args) {
+        const content = this.renderString(...args)
+        return this.send(content)
     }
 
-    renderApp(appName, initialState={}) {
-        this.header('content-type', 'text/html')
+    renderString({ appName, initialState }) {
+        const viewConfig = app().config('app').view
+        const locals = _.defaults({}, this._locals, viewConfig.locals )
+        const href = this._ctx.request.href
 
-        const appPath = `${app().sharedPath}/app/${appName}`
+        const content = this.viewEngine.render({ appName, href, viewConfig, initialState, locals })
 
-        return this._render({ appPath, appName, initialState })
+        return content
     }
 }

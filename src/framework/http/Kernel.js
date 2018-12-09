@@ -11,7 +11,6 @@ import CoreApp from 'koa'
 import coreBody from 'koa-body'
 
 import IClass from '../support/base/IClass'
-import IException from '../support/base/IException'
 import LogProvider from '../log/LogProvider'
 import RedisProvider from '../redis/RedisProvider'
 import DatabaseProvider from '../database/DatabaseProvider'
@@ -26,7 +25,6 @@ import version from '../version'
 import { normalizeMiddleware } from '../support/helpers'
 
 lodash.extend(global, {
-    IException,
     moment,
     _: lodash,
 })
@@ -200,7 +198,7 @@ export default class Kernel extends EventEmitter {
 
     event(eventName) {
         if (!this.__events[eventName]) {
-            throw new IException(`event ${eventName} not supported, you can use app().events get event list`)
+            throw new Error(`event ${eventName} not supported, you can use app().events get event list`)
         }
 
         return this.__events[eventName]
@@ -215,7 +213,7 @@ export default class Kernel extends EventEmitter {
 
         if (!~this.__envs.indexOf(env)) {
             console.error(`NODE__ENV not in ${JSON.stringify(this.__envs)}`)
-            throw new IException({ message: `NODE__ENV not in ${JSON.stringify(this.__envs)}` })
+            throw new Error({ message: `NODE__ENV not in ${JSON.stringify(this.__envs)}` })
         }
 
         this.__env = env
@@ -386,7 +384,7 @@ export default class Kernel extends EventEmitter {
 
     run() {
         if (!!this.__booted) {
-            throw new IException('Http kernel can\'t be rebooted.')
+            throw new Error('Http kernel can\'t be rebooted.')
         }
 
         const { host='', port } = this.__appConfig.server

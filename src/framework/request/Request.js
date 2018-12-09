@@ -13,12 +13,12 @@ import IClass from '../support/base/IClass'
 const LOG_CATEGORY = 'request'
 const DEFAULT_TIMEOUT = 10 * 1000
 
-export default class extends IClass {
+export default class Request extends IClass {
     _config = {
         log: false,
         ua: '',
-        requestId: false,
-        config: {},
+        seqId: false,
+        seqHeader: 'X-Seq-ID',
     }
 
     _jsonpCount = 10000
@@ -120,7 +120,7 @@ export default class extends IClass {
 
     jsonp(url, data={}, config={}) {
         if (!app().isBrowser) {
-            throw new IException('jsonp only used in browser')
+            throw new Error('jsonp only used in browser')
         }
 
         return new Promise((resolve, reject) => {
@@ -223,18 +223,16 @@ export default class extends IClass {
             targetConfig.headers = _.defaults({}, this._defaultConfig.headers, requestConfig.headers, targetConfig.headers)
         }
 
-        if (!!this._config.ua) {
+        if (this._config.ua) {
             targetConfig.headers['User-Agent'] = this._config.ua
         }
 
-        if (!!_.isBoolean(this._config.requestId)) {
-            if (!!this._config.requestId) {
+        if (_.isBoolean(this._config.seqId)) {
+            if (this._config.seqId) {
                 targetConfig.headers[this._config.seqHeader] = uuid()
             }
-        } else if (!!_.isFunction(this._config.requestId)) {
-            targetConfig.headers[this._config.seqHeader] = this._config.requestId()
-        } else if (!!_.isString(this._config.requestId)) {
-            targetConfig.headers[this._config.seqHeader] = this._config.requestId
+        } else if (_.isFunction(this._config.seqId)) {
+            targetConfig.headers[this._config.seqHeader] = this._config.seqId()
         }
 
         if (!~['get', 'delete'].indexOf(_.toLower(config.method))) {
