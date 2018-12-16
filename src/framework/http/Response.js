@@ -8,7 +8,7 @@ import IClass from '../support/base/IClass'
 
 export default class Response extends IClass {
     _ctx = null
-    viewEngine = null
+    _viewEngine = null
 
     _locals = {}
 
@@ -20,9 +20,6 @@ export default class Response extends IClass {
         super()
 
         this._ctx = ctx
-        const viewConfig = app().config('app').view
-
-        this.viewEngine = require(`inventor-view-${viewConfig.engine}/server`)
     }
 
     header(field, value) {
@@ -102,7 +99,7 @@ export default class Response extends IClass {
         let errContent = 'Internal Server Error'
 
         try {
-            errContent = this.renderString({ appName, initialState })
+            errContent = this.renderToString({ appName, initialState })
         } catch(e) {
             app().logger.error(e)
         }
@@ -136,16 +133,16 @@ export default class Response extends IClass {
     }
 
     render(...args) {
-        const content = this.renderString(...args)
+        const content = this.renderToString(...args)
         return this.send(content)
     }
 
-    renderString({ appName, initialState }) {
+    renderToString({ appName, initialState }) {
         const viewConfig = app().config('app').view
         const locals = _.defaults({}, this._locals, viewConfig.locals )
         const href = this._ctx.request.href
 
-        const content = this.viewEngine.render({ appName, href, viewConfig, initialState, locals })
+        const content = app().viewEngine.render({ appName, href, viewConfig, initialState, locals })
 
         return content
     }

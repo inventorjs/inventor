@@ -36,11 +36,15 @@ export default class Kernel extends EventEmitter {
     __redis = null
     __db = null
     __session = null
+    __viewEngine = null
     __env = ''
     __singletons = {}
     __booted = false
 
     __envs = [ 'local', 'development', 'test', 'production' ]
+    __viewEngines = [
+        'react-redux',
+    ]
 
     __appConfig = {}
 
@@ -79,6 +83,7 @@ export default class Kernel extends EventEmitter {
         this.__registerBaseProvider()
         this.__initApp()
         this.__initBaseMiddleware()
+        this.__initViewEngine()
     }
 
     get version() {
@@ -155,6 +160,10 @@ export default class Kernel extends EventEmitter {
         return this.__request
     }
 
+    get viewEngine() {
+        return this.__viewEngine
+    }
+
     get env() {
         return this.__env
     }
@@ -225,9 +234,12 @@ export default class Kernel extends EventEmitter {
     }
 
     __initBaseMiddleware() {
+        const middlewareConfig = app().config('app').coreMiddleware
+        const coreBodyConfig = _.get(middlewareConfig, 'coreBody', { multipart: true })
+
         this.__coreApp.use(requestTimeoutMiddleware)
         this.__coreApp.use(requestResponseMiddleware)
-        this.__coreApp.use(coreBody({ multipart: true }))
+        this.__coreApp.use(coreBody(coreBodyConfig))
         this.__coreApp.use(requestLogMiddleware)
         this.__initSessionMiddleware()
         this.__initCustomMiddlewares()
@@ -253,6 +265,25 @@ export default class Kernel extends EventEmitter {
         this.__db = ( new DatabaseProvider() ).register()
     }
 
+    __initViewEngine() {
+        const viewConfig = app().config('app').view
+        if (!_.get(viewConfig, 'engine')) {
+            console.log('view engine not found!')
+            return false
+        } else if (!~this.__viewEngines.indexOf(viewConfig.engine)) {
+            console.log(`view engine only support '${JSON.stringify(this.__viewEngines)}'`)
+            return false
+        }
+
+        const modulesConfig = require(`${app().webpackPath}/config/modules`)
+
+        this.__viewEngine = require(`inventor-view-${viewConfig.engine}/server`).default({
+            appPath: `${app().sharedPath}/${modulesConfig.app.ename}`,
+            commonPath: `${app().sharedPath}/${modulesConfig.common.ename}`,
+            vendorPath: `${app().sharedPath}/${modulesConfig.vendor.ename}`,
+        })
+    }
+
     __initRoutingMiddleware() {
         const routes = ( new RoutingProvider() ).register()
         this.__coreApp.use(routes)
@@ -274,7 +305,7 @@ export default class Kernel extends EventEmitter {
     }
 
     __registerRequestProvider() {
-        const request = app().config('request')
+        const request = app().config('app').request
         this.__request = ( new RequestProvider({ request }) ).register()
     }
 

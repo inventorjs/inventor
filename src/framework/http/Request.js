@@ -5,7 +5,6 @@
  */
 
 import IClass from '../support/base/IClass'
-import { extendObject } from '../shared/common/modules/utils'
 
 export default class Request extends IClass {
     _ctx = null
