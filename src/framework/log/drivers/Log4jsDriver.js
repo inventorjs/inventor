@@ -25,18 +25,19 @@ export default class Log4jsDriver extends IClass {
         level: 'level',
     }
 
-    _layout = {
+    _defaultLayout = {
         type: 'pattern',
         pattern: '[%d] [%p] %m',
     }
 
-    _config = {
+    _defaultConfig = {
         appenders: {
         },
         categories: {
             default: { appenders: ['debug'], level: 'debug'}
         },
         pm2: true,
+        pm2InstanceVar: 'NODE_APP_INSTANCE',
         replaceConsole: true,
     }
 
@@ -44,41 +45,42 @@ export default class Log4jsDriver extends IClass {
         super()
 
         if (!~this._modes.indexOf(logConfig.mode)) {
-            throw new IException(`log config mode is invalid! must value of ${JSON.stringify(this._modes)}`)
+            throw new Error(`log config mode is invalid! must value of ${JSON.stringify(this._modes)}`)
         }
 
         const logPath = logConfig.logPath
         const layout = { ...this._layout, ..._.get(logConfig, 'layout', {}) }
+        const targetConfig = _.extends({}, this._defaultConfig, _.pick(_.keys(this._defaultConfig)))
 
         if (logConfig.mode === 'console') {
-            this._config.appenders = {
+            targetConfig.appenders = {
                 default: {
                     type: 'console',
                     layout,
                 },
             }
-            this._config.categories = {
+            targetConfig.categories = {
                 default: {
                     appenders: [ 'default' ],
                     level: 'debug',
                 },
             }
         } else if (logConfig.mode === 'single') {
-            this._config.appenders = {
+            targetConfig.appenders = {
                 default: {
                     type: 'file',
                     filename: `${logPath}/log.txt`,
                     layout,
                 },
             }
-            this._config.categories = {
+            targetConfig.categories = {
                 default: {
                     appenders: [ 'default' ],
                     level: 'debug',
                 },
             }
         } else if (logConfig.mode === 'dateFile') {
-            this._config.appenders = {
+            targetConfig.appenders = {
                 default: {
                     ...pattern,
                     pattern: _.get(logConfig, 'pattern', this._dateFileConfig.pattern),
@@ -86,14 +88,14 @@ export default class Log4jsDriver extends IClass {
                     layout,
                 }
             }
-            this._config.categories = {
+            targetConfig.categories = {
                 default: {
                     appenders: [ 'default' ],
                     level: 'debug',
                 },
             }
         } else {
-            this._config.appenders = _.reduce(this._levels, (result, level) => {
+            targetConfig.appenders = _.reduce(this._levels, (result, level) => {
                 let filename = ''
                 if (logConfig.mode === 'levelDateFile') {
                     filename = `${logPath}/${level}-`
@@ -110,9 +112,9 @@ export default class Log4jsDriver extends IClass {
                         layout,
                     },
                 }
-            }, this._config.appenders)
+            }, targetConfig.appenders)
 
-            this._config.categories = _.reduce(this._levels, (result, level) => {
+            targetConfig.categories = _.reduce(this._levels, (result, level) => {
                 return {
                     ...result,
                     [level]: {
@@ -120,10 +122,10 @@ export default class Log4jsDriver extends IClass {
                         appenders: [ `${level}` ],
                     },
                 }
-            }, this._config.categories)
+            }, targetConfig.categories)
         }
 
-        Log4js.configure(this._config)
+        Log4js.configure(targetConfig)
 
         _.each(this._levels, (level) => {
             this[level] = (msg, category='default') => {

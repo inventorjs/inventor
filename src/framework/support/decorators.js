@@ -15,11 +15,11 @@ export function dbModel() {
         }
 
         if (_.isUndefined(tableName)) {
-            throw new IException(`dbModel ${Target.name} must implement _tableName getter`)
+            throw new Error(`dbModel ${Target.name} must implement _tableName getter`)
         }
 
         if (_.isUndefined(schema)) {
-            throw new IException(`dbModel ${Target.name} must implement get _schema getter`)
+            throw new Error(`dbModel ${Target.name} must implement get _schema getter`)
         }
 
         let hooks = {}

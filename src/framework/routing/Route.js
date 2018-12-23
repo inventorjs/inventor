@@ -38,7 +38,7 @@ export default class Route extends IClass {
 
         if (_.isString(handler)) {
             if (!~handler.indexOf('@')) {
-                throw new IException(`route handler string must like {controller}@{action}, now is ${handler}`)
+                throw new Error(`route handler string must like {controller}@{action}, now is ${handler}`)
             }
             const handlerArr = handler.split('@')
             const controllerName = handlerArr[0]
@@ -63,7 +63,7 @@ export default class Route extends IClass {
             const controllerInstance = new Controller(request, response)
 
             if (!_.isFunction(controllerInstance[actionName])) {
-                throw new IException(`action (${actionName}) function not defined`)
+                throw new Error(`action (${actionName}) function not defined`)
             }
 
             return controllerInstance[actionName]()

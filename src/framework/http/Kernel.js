@@ -17,6 +17,7 @@ import DatabaseProvider from '../database/DatabaseProvider'
 import SessionProvider from '../session/SessionProvider'
 import RoutingProvider from '../routing/RoutingProvider'
 import RequestProvider from '../request/RequestProvider'
+import asyncContextMiddleware from './middlewares/asyncContext'
 import requestLogMiddleware from './middlewares/requestLog'
 import requestTimeoutMiddleware from './middlewares/requestTimeout'
 import requestResponseMiddleware from './middlewares/requestResponse'
@@ -30,27 +31,27 @@ lodash.extend(global, {
 })
 
 export default class Kernel extends EventEmitter {
-    __coreApp = new CoreApp()
-    __basePath = ''
-    __logger = null
-    __redis = null
-    __db = null
-    __session = null
-    __viewEngine = null
-    __env = ''
-    __singletons = {}
-    __booted = false
+    _coreApp = new CoreApp()
+    _basePath = ''
+    _logger = null
+    _redis = null
+    _db = null
+    _session = null
+    _viewEngine = null
+    _env = ''
+    _singletons = {}
+    _booted = false
 
-    __envs = [ 'local', 'development', 'test', 'production' ]
-    __viewEngines = [
+    _envs = [ 'local', 'development', 'test', 'production' ]
+    _viewEngines = [
         'react-redux',
     ]
 
-    __appConfig = {}
+    _appConfig = {}
 
     _middlewares = []
 
-    __events = {
+    _events = {
         'process-uncaughtException': Symbol('process-uncaughtException'),
         'process-unhandledRejection': Symbol('process-unhandledRejection'),
         'process-SIGINT': Symbol('process-SIGINT'),
@@ -77,13 +78,13 @@ export default class Kernel extends EventEmitter {
     constructor(basePath) {
         super()
 
-        this.__basePath = basePath
-        this.__initEnv()
-        this.__registerGlobal()
-        this.__registerBaseProvider()
-        this.__initApp()
-        this.__initBaseMiddleware()
-        this.__initViewEngine()
+        this._basePath = basePath
+        this._initEnv()
+        this._registerGlobal()
+        this._registerBaseProvider()
+        this._initApp()
+        this._initBaseMiddleware()
+        this._initViewEngine()
     }
 
     get version() {
@@ -91,7 +92,7 @@ export default class Kernel extends EventEmitter {
     }
 
     get basePath() {
-        return this.__basePath
+        return this._basePath
     }
 
     get configPath() {
@@ -145,27 +146,27 @@ export default class Kernel extends EventEmitter {
     }
 
     get logger() {
-        return this.__logger
+        return this._logger
     }
 
     get redis() {
-        return this.__redis
+        return this._redis
     }
 
     get db() {
-        return this.__db
+        return this._db
     }
 
     get request() {
-        return this.__request
+        return this._request
     }
 
     get viewEngine() {
-        return this.__viewEngine
+        return this._viewEngine
     }
 
     get env() {
-        return this.__env
+        return this._env
     }
 
     config(configName) {
@@ -194,122 +195,123 @@ export default class Kernel extends EventEmitter {
     }
 
     singleton(classPath, ...args) {
-        if (this.__singletons[classPath]) {
-            return this.__singletons[classPath]
+        if (this._singletons[classPath]) {
+            return this._singletons[classPath]
         }
 
         const Class = require(classPath).default
         const instance = new Class(...args)
-        this.__singletons[classPath] = instance
+        this._singletons[classPath] = instance
 
         return instance
     }
 
     event(eventName) {
-        if (!this.__events[eventName]) {
+        if (!this._events[eventName]) {
             throw new Error(`event ${eventName} not supported, you can use app().events get event list`)
         }
 
-        return this.__events[eventName]
+        return this._events[eventName]
     }
 
     get events() {
-        return _.keys(this.__events)
+        return _.keys(this._events)
     }
 
-    __initEnv() {
+    _initEnv() {
         const env = process.env.NODE_ENV
 
-        if (!~this.__envs.indexOf(env)) {
-            console.error(`NODE__ENV not in ${JSON.stringify(this.__envs)}`)
-            throw new Error({ message: `NODE__ENV not in ${JSON.stringify(this.__envs)}` })
+        if (!~this._envs.indexOf(env)) {
+            console.error(`NODE_ENV not in ${JSON.stringify(this._envs)}`)
+            throw new Error({ message: `NODE_ENV not in ${JSON.stringify(this._envs)}` })
         }
 
-        this.__env = env
+        this._env = env
     }
 
-    __initApp() {
-        this.__appConfig = this.config('app')
-        this.__coreApp.keys = this.config('app').keys
+    _initApp() {
+        this._appConfig = this.config('app')
+        this._coreApp.keys = this.config('app').keys
     }
 
-    __initBaseMiddleware() {
+    _initBaseMiddleware() {
         const middlewareConfig = app().config('app').coreMiddleware
         const coreBodyConfig = _.get(middlewareConfig, 'coreBody', { multipart: true })
 
-        this.__coreApp.use(requestTimeoutMiddleware)
-        this.__coreApp.use(requestResponseMiddleware)
-        this.__coreApp.use(coreBody(coreBodyConfig))
-        this.__coreApp.use(requestLogMiddleware)
-        this.__initSessionMiddleware()
-        this.__initCustomMiddlewares()
-        this.__initRoutingMiddleware()
+        this._coreApp.use(asyncContextMiddleware)
+        this._coreApp.use(requestTimeoutMiddleware)
+        this._coreApp.use(requestResponseMiddleware)
+        this._coreApp.use(coreBody(coreBodyConfig))
+        this._coreApp.use(requestLogMiddleware)
+        this._initSessionMiddleware()
+        this._initCustomMiddlewares()
+        this._initRoutingMiddleware()
     }
 
-    __registerBaseProvider() {
-        this.__registerLogProvider()
-        this.__registerRedisProvider()
-        this.__registerDatabaseProvider()
-        this.__registerRequestProvider()
+    _registerBaseProvider() {
+        this._registerLogProvider()
+        this._registerRedisProvider()
+        this._registerDatabaseProvider()
+        this._registerRequestProvider()
     }
 
-    __registerLogProvider() {
-        this.__logger = ( new LogProvider() ).register()
+    _registerLogProvider() {
+        this._logger = ( new LogProvider() ).register()
     }
 
-    __registerRedisProvider() {
-        this.__redis = ( new RedisProvider() ).register()
+    _registerRedisProvider() {
+        this._redis = ( new RedisProvider() ).register()
     }
 
-    __registerDatabaseProvider() {
-        this.__db = ( new DatabaseProvider() ).register()
+    _registerDatabaseProvider() {
+        this._db = ( new DatabaseProvider() ).register()
     }
 
-    __initViewEngine() {
+    _initViewEngine() {
         const viewConfig = app().config('app').view
         if (!_.get(viewConfig, 'engine')) {
             console.log('view engine not found!')
             return false
-        } else if (!~this.__viewEngines.indexOf(viewConfig.engine)) {
-            console.log(`view engine only support '${JSON.stringify(this.__viewEngines)}'`)
+        } else if (!~this._viewEngines.indexOf(viewConfig.engine)) {
+            console.log(`view engine only support '${JSON.stringify(this._viewEngines)}'`)
             return false
         }
 
         const modulesConfig = require(`${app().webpackPath}/config/modules`)
 
-        this.__viewEngine = require(`inventor-view-${viewConfig.engine}/server`).default({
+        this._viewEngine = require(`inventor-view-${viewConfig.engine}/server`).default({
             appPath: `${app().sharedPath}/${modulesConfig.app.ename}`,
             commonPath: `${app().sharedPath}/${modulesConfig.common.ename}`,
             vendorPath: `${app().sharedPath}/${modulesConfig.vendor.ename}`,
         })
     }
 
-    __initRoutingMiddleware() {
+    _initRoutingMiddleware() {
         const routes = ( new RoutingProvider() ).register()
-        this.__coreApp.use(routes)
+        this._coreApp.use(routes)
     }
 
-    __initSessionMiddleware() {
+    _initSessionMiddleware() {
         const session = ( new SessionProvider() ).register()
-        this.__coreApp.use(session(this.__coreApp))
+        this._coreApp.use(session(this._coreApp))
     }
 
-    __initCustomMiddlewares() {
+    _initCustomMiddlewares() {
         if (!this._middlewares.length) {
             return false
         }
 
         _.each(this._middlewares, (Middleware) => {
-            this.__coreApp.use(normalizeMiddleware(Middleware.handle.bind(Middleware)))
+            this._coreApp.use(normalizeMiddleware(Middleware.handle.bind(Middleware)))
         })
     }
 
-    __registerRequestProvider() {
+    _registerRequestProvider() {
         const request = app().config('app').request
-        this.__request = ( new RequestProvider({ request }) ).register()
+        this._request = ( new RequestProvider({ request }) ).register()
     }
 
-    __registerGlobal() {
+    _registerGlobal() {
         lodash.extend(global, {
             app: () => {
                 return this
@@ -317,14 +319,14 @@ export default class Kernel extends EventEmitter {
         })
 
         this._registerGlobalEvents()
-        this.__registerSystemEvents()
+        this._registerSystemEvents()
     }
 
     _registerGlobalEvents() {
-        console.log(`Inventor app() support events : ${JSON.stringify(_.keys(this.__events))}`)
+        console.log(`Inventor app() support events : ${JSON.stringify(_.keys(this._events))}`)
     }
 
-    __registerSystemEvents() {
+    _registerSystemEvents() {
         process.on('uncaughtException', (e) => {
             const event = app().event('process-uncaughtException')
             if (app().listenerCount(event) > 0) {
@@ -414,13 +416,13 @@ export default class Kernel extends EventEmitter {
     }
 
     run() {
-        if (!!this.__booted) {
+        if (!!this._booted) {
             throw new Error('Http kernel can\'t be rebooted.')
         }
 
-        const { host='', port } = this.__appConfig.server
+        const { host='', port } = this._appConfig.server
 
-        this.__coreApp.onerror = (e, ctx) => {
+        this._coreApp.onerror = (e, ctx) => {
             const event = app().event('app-error')
             if (app().listenerCount(event) > 0) {
                 return app().emit(event, e, ctx.iRequest, ctx.iResponse)
@@ -431,19 +433,19 @@ export default class Kernel extends EventEmitter {
             return ctx.iResponse.renderError('core', e)
         }
 
-        let server = this.__coreApp
+        let server = this._coreApp
 
         if (host) {
-            server = this.__coreApp.listen(port, host)
+            server = this._coreApp.listen(port, host)
         } else {
-            server = this.__coreApp.listen(port)
+            server = this._coreApp.listen(port)
         }
 
         server.on('listening', () => {
             app().logger.info(`Inventor server listening on ${host}:${port}`, 'app')
-            app().emit(app().event('app-listening'), this.__appConfig.server)
+            app().emit(app().event('app-listening'), this._appConfig.server)
         })
 
-        this.__booted = true
+        this._booted = true
     }
 }

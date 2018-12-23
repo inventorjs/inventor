@@ -143,7 +143,7 @@ export default class Request extends IClass {
                 }
 
                 global[jsonpId] = () => {
-                    return reject(new IException('jsonp has been cleanup'))
+                    return reject(new Error('jsonp has been cleanup'))
                 }
             }
 
@@ -158,7 +158,7 @@ export default class Request extends IClass {
 
             timer = setTimeout(() => {
                 cleanup()
-                return reject(new IException('jsonp response timeout'))
+                return reject(new Error('jsonp response timeout'))
             }, targetConfig.timeout)
         })
     }

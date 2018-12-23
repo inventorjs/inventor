@@ -16,7 +16,7 @@ export default class DatabaseProvider extends Provider {
 
         _.each(databaseConfig, (config, dbName) => {
             if (dbName === '$') {
-                throw new IException(`database instance name [${this.staticKey}] is not allowed`)
+                throw new Error(`database instance name [${this.staticKey}] is not allowed`)
             }
             const {
                 driver, host, port, database, username, password, options={},

@@ -7,7 +7,7 @@
 export function interfaceModel(interfaceConfig) {
     return (Target, key, descriptor) => {
         if (!interfaceConfig) {
-            throw new IException(`interfaceConfig is required by ${Target.name}`)
+            throw new Error(`interfaceConfig is required by ${Target.name}`)
         }
 
         const url = interfaceConfig.url
@@ -30,7 +30,7 @@ export function interfaceModel(interfaceConfig) {
             }
         }
 
-        Target.__sendRequest = function(apiConfig, data={}, options={}) {
+        Target._sendRequest = function(apiConfig, data={}, options={}) {
             const packedData = this._packData(data, apiConfig.data)
             const apiOptions = _.get(apiConfig, 'options', {})
             const moduleOptions = _.get(interfaceConfig, 'options', {})
@@ -50,7 +50,7 @@ export function interfaceModel(interfaceConfig) {
         _.forOwn(interfaceConfig.api, (apiConfig, apiName) => {
             if (_.isUndefined(Target[apiName])) {
                 Target[apiName] = function(data={}, options={}) {
-                    return this.__sendRequest(apiConfig, data, options)
+                    return this._sendRequest(apiConfig, data, options)
                                .then(this._transRes)
                 }
             }

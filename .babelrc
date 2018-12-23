@@ -1,9 +1,16 @@
 {
-    "presets": ["react", "env", "stage-0"],
+    "presets": ["react",
+        ["env", {
+            "targets": { "node": "8.14.0" }
+        }]
+    ],
     "plugins": [
        ["transform-runtime", {
             "polyfill": false,
             "regenerator": false
-       }]
+       }],
+       "transform-decorators-legacy",
+       "transform-class-properties",
+       "transform-export-extensions"
     ]
 }
