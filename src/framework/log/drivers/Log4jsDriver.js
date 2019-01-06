@@ -49,8 +49,8 @@ export default class Log4jsDriver extends IClass {
         }
 
         const logPath = logConfig.logPath
-        const layout = { ...this._layout, ..._.get(logConfig, 'layout', {}) }
-        const targetConfig = _.extends({}, this._defaultConfig, _.pick(_.keys(this._defaultConfig)))
+        const layout = { ...this._defaultLayout, ..._.get(logConfig, 'layout', {}) }
+        const targetConfig = _.extend({}, this._defaultConfig, _.pick(_.keys(this._defaultConfig)))
 
         if (logConfig.mode === 'console') {
             targetConfig.appenders = {

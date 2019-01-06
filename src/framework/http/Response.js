@@ -3,7 +3,6 @@
  *
  * @author : sunkeysun
  */
-import React from 'react'
 import IClass from '../support/base/IClass'
 
 export default class Response extends IClass {

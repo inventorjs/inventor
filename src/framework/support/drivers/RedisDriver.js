@@ -26,7 +26,7 @@ export default class RedisDriver extends Driver {
         }
 
         if (!this._redis) {
-            return this._redis
+            return {}
         }
 
         this._redis.on('connect', () => {

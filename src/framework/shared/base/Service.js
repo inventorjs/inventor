@@ -4,7 +4,7 @@
  * @author : sunkeysun
  */
 
-import IClass from './IClass'
+import IClass from '../../support/base/IClass'
 
 export default class Service extends IClass {
 }
