@@ -6,7 +6,7 @@
 
 export default from './framework/http/Kernel'
 
-export { default as Controller } from './framework/http/Controller'
-export { default as Provider } from './framework/support/base/Provider'
-export { default as Middleware } from './framework/support/base/Middleware'
+export Controller from './framework/http/Controller'
+export Provider from './framework/support/base/Provider'
+export Middleware from './framework/support/base/Middleware'
 export * as decorators from './framework/support/decorators'
