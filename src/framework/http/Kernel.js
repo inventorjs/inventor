@@ -5,12 +5,11 @@
  */
 
 import EventEmitter from 'events'
-import lodash from 'lodash'
-import moment from 'moment'
 import CoreApp from 'koa'
 import coreBody from 'koa-body'
 
-import IClass from '../support/base/IClass'
+import './superGlobals'
+
 import LogProvider from '../log/LogProvider'
 import RedisProvider from '../redis/RedisProvider'
 import DatabaseProvider from '../database/DatabaseProvider'
@@ -24,11 +23,6 @@ import requestResponseMiddleware from './middlewares/requestResponse'
 import { config } from '../support/helpers'
 import version from '../version'
 import { normalizeMiddleware } from '../support/helpers'
-
-lodash.extend(global, {
-    moment,
-    _: lodash,
-})
 
 export default class Kernel extends EventEmitter {
     _coreApp = new CoreApp()
@@ -279,7 +273,8 @@ export default class Kernel extends EventEmitter {
 
         const modulesConfig = require(`${app().webpackPath}/config/modules`)
 
-        this._viewEngine = require(`inventor-view-${viewConfig.engine}/server`).default({
+        const ViewEngine = require(`inventor-view-${viewConfig.engine}/server`).default
+        this._viewEngine = new ViewEngine({
             appPath: `${app().sharedPath}/${modulesConfig.app.ename}`,
             commonPath: `${app().sharedPath}/${modulesConfig.common.ename}`,
             vendorPath: `${app().sharedPath}/${modulesConfig.vendor.ename}`,
@@ -312,7 +307,10 @@ export default class Kernel extends EventEmitter {
     }
 
     _registerGlobal() {
-        lodash.extend(global, {
+        const globals = app().config('app').globals || {}
+
+        _.extend(global, {
+            ...globals,
             app: () => {
                 return this
             },

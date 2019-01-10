@@ -7,8 +7,6 @@ import IClass from '../support/base/IClass'
 
 export default class Response extends IClass {
     _ctx = null
-    _viewEngine = null
-
     _locals = {}
 
     get locals() {
@@ -136,12 +134,12 @@ export default class Response extends IClass {
         return this.send(content)
     }
 
-    renderToString({ appName, initialState }) {
+    renderToString(appName, initialState) {
         const viewConfig = app().config('app').view
-        const locals = _.defaults({}, this._locals, viewConfig.locals )
+        const locals = _.defaults({}, this._locals, viewConfig.config.locals )
         const href = this._ctx.request.href
 
-        const content = app().viewEngine.render({ appName, href, viewConfig, initialState, locals })
+        const content = app().viewEngine.render({ appName, href, viewConfig.config, initialState, locals })
 
         return content
     }
