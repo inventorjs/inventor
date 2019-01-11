@@ -139,7 +139,7 @@ export default class Response extends IClass {
         const locals = _.defaults({}, this._locals, viewConfig.config.locals )
         const href = this._ctx.request.href
 
-        const content = app().viewEngine.render({ appName, href, viewConfig.config, initialState, locals })
+        const content = app().viewEngine.render({ appName, href, viewConfig: viewConfig.config, initialState, locals })
 
         return content
     }

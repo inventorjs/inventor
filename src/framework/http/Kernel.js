@@ -307,13 +307,12 @@ export default class Kernel extends EventEmitter {
     }
 
     _registerGlobal() {
+        global.app = () => this
         const globals = app().config('app').globals || {}
 
         _.extend(global, {
             ...globals,
-            app: () => {
-                return this
-            },
+            app: () => this,
         })
 
         this._registerGlobalEvents()

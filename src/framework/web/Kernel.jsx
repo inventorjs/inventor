@@ -9,7 +9,7 @@ import moment from 'moment'
 import EventEmitter from 'eventemitter3'
 
 global = typeof window !== undefined && window || this
-import 'superGlobals'
+import './superGlobals'
 
 import RequestProvider from '../request/RequestProvider'
 import version from '../version'
