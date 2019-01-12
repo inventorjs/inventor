@@ -201,8 +201,7 @@ export default class Request extends IClass {
         if (_.isString(_.get(res, 'config.data'))) {
             try {
                 data = JSON.parse(res.config.data)
-            } catch (e) {
-            }
+            } catch (e) {}
         }
 
         const logStr = JSON.stringify({

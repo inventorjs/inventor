@@ -74,9 +74,9 @@ export default class Kernel extends EventEmitter {
 
         this._basePath = basePath
         this._initEnv()
+        this._initCoreApp()
         this._registerGlobal()
         this._registerBaseProvider()
-        this._initApp()
         this._initBaseMiddleware()
         this._initViewEngine()
     }
@@ -223,7 +223,7 @@ export default class Kernel extends EventEmitter {
         this._env = env
     }
 
-    _initApp() {
+    _initCoreApp() {
         this._appConfig = this.config('app')
         this._coreApp.keys = this.config('app').keys
     }
@@ -264,10 +264,10 @@ export default class Kernel extends EventEmitter {
     _initViewEngine() {
         const viewConfig = app().config('app').view
         if (!_.get(viewConfig, 'engine')) {
-            console.log('view engine not found!')
+            console.warn('view engine not found!')
             return false
         } else if (!~this._viewEngines.indexOf(viewConfig.engine)) {
-            console.log(`view engine only support '${JSON.stringify(this._viewEngines)}'`)
+            console.warn(`view engine only support '${JSON.stringify(this._viewEngines)}'`)
             return false
         }
 
