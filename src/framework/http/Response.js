@@ -96,7 +96,7 @@ export default class Response extends IClass {
         let errContent = 'Internal Server Error'
 
         try {
-            errContent = this.renderToString({ appName, initialState })
+            errContent = this.renderToString(appName, initialState)
         } catch(e) {
             app().logger.error(e)
         }
