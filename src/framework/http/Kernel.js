@@ -74,8 +74,8 @@ export default class Kernel extends EventEmitter {
 
         this._basePath = basePath
         this._initEnv()
-        this._initCoreApp()
         this._registerGlobal()
+        this._initCoreApp()
         this._registerBaseProvider()
         this._initBaseMiddleware()
         this._initViewEngine()
