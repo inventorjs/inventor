@@ -302,8 +302,8 @@ export default class Kernel extends EventEmitter {
     }
 
     _registerRequestProvider() {
-        const request = app().config('app').request
-        this._request = ( new RequestProvider({ request }) ).register()
+        const requestConfig = app().config('app').request
+        this._request = ( new RequestProvider() ).register(requestConfig)
     }
 
     _registerGlobal() {
