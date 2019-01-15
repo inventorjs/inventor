@@ -74,8 +74,8 @@ export default class Kernel extends EventEmitter {
 
         this._basePath = basePath
         this._initEnv()
-        this._initCoreApp()
         this._registerGlobal()
+        this._initCoreApp()
         this._registerBaseProvider()
         this._initBaseMiddleware()
         this._initViewEngine()
@@ -242,25 +242,6 @@ export default class Kernel extends EventEmitter {
         this._initRoutingMiddleware()
     }
 
-    _registerBaseProvider() {
-        this._registerLogProvider()
-        this._registerRedisProvider()
-        this._registerDatabaseProvider()
-        this._registerRequestProvider()
-    }
-
-    _registerLogProvider() {
-        this._logger = ( new LogProvider() ).register()
-    }
-
-    _registerRedisProvider() {
-        this._redis = ( new RedisProvider() ).register()
-    }
-
-    _registerDatabaseProvider() {
-        this._db = ( new DatabaseProvider() ).register()
-    }
-
     _initViewEngine() {
         const viewConfig = app().config('app').view
         if (!_.get(viewConfig, 'engine')) {
@@ -301,9 +282,29 @@ export default class Kernel extends EventEmitter {
         })
     }
 
+
+    _registerBaseProvider() {
+        this._registerLogProvider()
+        this._registerRedisProvider()
+        this._registerDatabaseProvider()
+        this._registerRequestProvider()
+    }
+
+    _registerLogProvider() {
+        this._logger = ( new LogProvider() ).register()
+    }
+
+    _registerRedisProvider() {
+        this._redis = ( new RedisProvider() ).register()
+    }
+
+    _registerDatabaseProvider() {
+        this._db = ( new DatabaseProvider() ).register()
+    }
+
     _registerRequestProvider() {
-        const request = app().config('app').request
-        this._request = ( new RequestProvider({ request }) ).register()
+        const requestConfig = _.defaults(app().config('app').request, { ua: this.version })
+        this._request = ( new RequestProvider() ).register(requestConfig)
     }
 
     _registerGlobal() {

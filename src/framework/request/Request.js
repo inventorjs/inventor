@@ -12,6 +12,7 @@ import IClass from '../support/base/IClass'
 
 const LOG_CATEGORY = 'request'
 const DEFAULT_TIMEOUT = 10 * 1000
+const SEQ_HEASER = 'X-Seq-ID'
 
 export default class Request extends IClass {
     _config = {
@@ -61,6 +62,10 @@ export default class Request extends IClass {
         super()
 
         this._config = { ...this._config, ...config }
+    }
+
+    get seqHeader() {
+        return SEQ_HEASER
     }
 
     get(url, data, config={}) {
@@ -124,7 +129,7 @@ export default class Request extends IClass {
         }
 
         return new Promise((resolve, reject) => {
-            const targetConfig = { ...this._jsonpConfig, ..._.pick(requestConfig, _.keys(this._jsonpConfig)), ..._.pick(config, _.keys(this._jsonpConfig)) }
+            const targetConfig = { ...this._jsonpConfig, ..._.pick(this._config, _.keys(this._jsonpConfig)), ..._.pick(config, _.keys(this._jsonpConfig)) }
             const jsonpId = targetConfig.prefix + (++this._jsonpCount%_.toSafeInteger(_.pad('', 20, '9')))
             let script = null
 
@@ -214,24 +219,25 @@ export default class Request extends IClass {
     }
 
     async _send(config) {
-        const requestConfig = _.get(this._config.request, 'config', {})
-        const targetConfig = { ...this._defaultConfig, ..._.pick(requestConfig, _.keys(this._defaultConfig)), ..._.pick(config, _.keys(this._defaultConfig)) }
-        const customConfig = { ...this._defaultCustomConfig, ..._.pick(requestConfig, _.keys(this._defaultCustomConfig)), ..._.pick(config, _.keys(this._defaultCustomConfig)) }
+        const targetConfig = { ...this._defaultConfig, ..._.pick(this._config, _.keys(this._defaultConfig)), ..._.pick(config, _.keys(this._defaultConfig)) }
+        const customConfig = { ...this._defaultCustomConfig, ..._.pick(this._config, _.keys(this._defaultCustomConfig)), ..._.pick(config, _.keys(this._defaultCustomConfig)) }
 
         if (targetConfig.headers) {
-            targetConfig.headers = _.defaults({}, this._defaultConfig.headers, requestConfig.headers, targetConfig.headers)
+            targetConfig.headers = _.defaults({}, this._defaultConfig.headers, this._config.headers, targetConfig.headers)
         }
 
         if (this._config.ua) {
             targetConfig.headers['User-Agent'] = this._config.ua
         }
 
-        if (_.isBoolean(this._config.seqId)) {
-            if (this._config.seqId) {
-                targetConfig.headers[this._config.seqHeader] = uuid()
+        if (app().isBrowser) {
+            if (_.isBoolean(this._config.seqId)) {
+                if (this._config.seqId) {
+                    targetConfig.headers[SEQ_HEASER] = uuid()
+                }
+            } else if (_.isFunction(this._config.seqId)) {
+                targetConfig.headers[SEQ_HEASER] = this._config.seqId()
             }
-        } else if (_.isFunction(this._config.seqId)) {
-            targetConfig.headers[this._config.seqHeader] = this._config.seqId()
         }
 
         if (!~['get', 'delete'].indexOf(_.toLower(config.method))) {

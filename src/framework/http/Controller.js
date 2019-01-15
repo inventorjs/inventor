@@ -15,6 +15,16 @@ export default class Controller extends IClass{
         super()
         this.request = request
         this.response = response
+
+        const requestConfig = app().config('app').request
+        const seqHeader = app().request.seqHeader
+        if (requestConfig.seqId && request.headers[_.toLower(seqHeader)]) {
+            this._options = {
+                headers: {
+                    [seqHeader]: request.headers[_.toLower(seqHeader)],
+                },
+            }
+        }
     }
 
     set _options(options) {
