@@ -242,25 +242,6 @@ export default class Kernel extends EventEmitter {
         this._initRoutingMiddleware()
     }
 
-    _registerBaseProvider() {
-        this._registerLogProvider()
-        this._registerRedisProvider()
-        this._registerDatabaseProvider()
-        this._registerRequestProvider()
-    }
-
-    _registerLogProvider() {
-        this._logger = ( new LogProvider() ).register()
-    }
-
-    _registerRedisProvider() {
-        this._redis = ( new RedisProvider() ).register()
-    }
-
-    _registerDatabaseProvider() {
-        this._db = ( new DatabaseProvider() ).register()
-    }
-
     _initViewEngine() {
         const viewConfig = app().config('app').view
         if (!_.get(viewConfig, 'engine')) {
@@ -301,8 +282,28 @@ export default class Kernel extends EventEmitter {
         })
     }
 
+
+    _registerBaseProvider() {
+        this._registerLogProvider()
+        this._registerRedisProvider()
+        this._registerDatabaseProvider()
+        this._registerRequestProvider()
+    }
+
+    _registerLogProvider() {
+        this._logger = ( new LogProvider() ).register()
+    }
+
+    _registerRedisProvider() {
+        this._redis = ( new RedisProvider() ).register()
+    }
+
+    _registerDatabaseProvider() {
+        this._db = ( new DatabaseProvider() ).register()
+    }
+
     _registerRequestProvider() {
-        const requestConfig = app().config('app').request
+        const requestConfig = _.defaults(app().config('app').request, { ua: this.version })
         this._request = ( new RequestProvider() ).register(requestConfig)
     }
 
