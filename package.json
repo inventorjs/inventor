@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "babel --delete-dir-on-start src -d build -D && cp package-lock.json package.json README.md build/",
-    "prepublish": "npm run build"
+    "build": "babel --delete-dir-on-start src -d build -D && cp package-lock.json package.json README.md build/"
   },
   "repository": {
     "type": "git",
