@@ -3,12 +3,10 @@ module.exports = function(api) {
 
     return {
         presets: [
-            ['@babel/preset-env', {
-                targets: { node: '8.14.0' }
-            }]
+            ['@babel/preset-env'],
         ],
         plugins: [
-            ['@babel/plugin-transform-runtime', { regenerator: false }],
+            ['@babel/plugin-transform-runtime'],
             ['@babel/plugin-proposal-decorators', { legacy: true }],
             ['@babel/plugin-proposal-class-properties', { loose: true }],
             '@babel/plugin-proposal-export-default-from',
