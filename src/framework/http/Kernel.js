@@ -20,6 +20,7 @@ import asyncContextMiddleware from './middlewares/asyncContext'
 import requestLogMiddleware from './middlewares/requestLog'
 import requestTimeoutMiddleware from './middlewares/requestTimeout'
 import requestResponseMiddleware from './middlewares/requestResponse'
+import seqIdMiddleware from './middlewares/seqId'
 import { config } from '../support/helpers'
 import version from '../version'
 import { normalizeMiddleware } from '../support/helpers'
@@ -237,6 +238,7 @@ export default class Kernel extends EventEmitter {
         this._coreApp.use(requestResponseMiddleware)
         this._coreApp.use(coreBody(coreBodyConfig))
         this._coreApp.use(requestLogMiddleware)
+        this._coreApp.use(seqIdMiddleware)
         this._initSessionMiddleware()
         this._initCustomMiddlewares()
         this._initRoutingMiddleware()
