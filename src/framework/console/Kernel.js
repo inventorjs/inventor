@@ -112,6 +112,10 @@ export default class ConsoleKernel extends EventEmitter {
         return this._env
     }
 
+    get scheduleCommand() {
+        return this._scheduleCommand
+    }
+
     config(configName) {
         return config(configName)
     }
@@ -310,7 +314,7 @@ export default class ConsoleKernel extends EventEmitter {
         console.log('You can schedule some job in schedule function.')
     }
 
-    async run(command, options) {
+    async run() {
         if (this._booted) {
             throw new Error('Console kernel can\'t be rebooted.')
         }
@@ -318,11 +322,6 @@ export default class ConsoleKernel extends EventEmitter {
         this._booted = true
 
         this._registerSchedule(this._schedule)
-
-        if (!!~this._commands.indexOf(command)) {
-            return await this.runCommand(command, options)
-        } else {
-            throw new Error(`unknown command ${command}，please check command has been registerd in ConsoleKernel _commands.`)
-        }
+        this.runCommand(this._scheduleCommand)
     }
 }

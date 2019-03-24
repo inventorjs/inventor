@@ -93,7 +93,7 @@ export default class Router extends IClass {
             return routeB.type === 'resource'  ? -1 : 0
         })
 
-        _.(sortedRoutes, (route) => {
+        _.each(sortedRoutes, (route) => {
             coreRouter[route.method].apply(coreRouter, ...route.middlewares, route.handler)
         })
 

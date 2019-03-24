@@ -15,20 +15,23 @@ export default class Schedule extends Command {
     static async handle(options) {
         const crontabs = options.crontabs
         const readyCommands = []
+        const commandPromises = []
 
         _.each(crontabs, (crontab) => {
             if (this._isDue(crontab.expression)) {
                 readyCommands.push(crontab.command)
-                try {
-                    await app().runCommand(crontab.command, crontab.options)
-                } catch (e) {
-                    app().logger.error(e, 'crontab-error')
-                }
+                commandPromises.push(app().runCommand(crontab.command, crontab.options))
             }
         })
 
         if (readyCommands.length) {
             app().logger.info(`crontab exec ${ readyCommands.length } commands => ${JSON.stringify(readyCommands)} at ${this._now}`, 'crontab')
+
+            try {
+                await Promise.all(commandPromises)
+            } catch (e) {
+                app().logger.error(e, 'crontab-error')
+            }
         } else {
             app().logger.info(`crontab no ready commands at ${this._now}`, 'crontab')
         }
