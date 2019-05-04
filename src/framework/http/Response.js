@@ -8,6 +8,7 @@ import IClass from '../support/base/IClass'
 export default class Response extends IClass {
     _ctx = null
     _locals = {}
+    _hasSend = false
 
     get locals() {
         return this._locals
@@ -43,7 +44,12 @@ export default class Response extends IClass {
     }
 
     send(data='') {
+        if (this._hasSend) {
+            throw new Error('response has been sent. cant\'t send again!')
+        }
+
         this._ctx.response.body = data
+        this._hasSend = true
         return this
     }
 
@@ -59,6 +65,7 @@ export default class Response extends IClass {
 
     redirect(url) {
         this._ctx.redirect(url)
+        this._hasSent = true
         return this
     }
 
@@ -131,7 +138,8 @@ export default class Response extends IClass {
 
     render(...args) {
         const content = this.renderToString(...args)
-        return this.send(content)
+        this.send(content)
+        return this
     }
 
     renderToString(appName, initialState) {
