@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "babel --delete-dir-on-start src -d build -D && cp package-lock.json package.json README.md build/",
-    "dev": "babel --delete-dir-on-start src -d /Users/sunkeysun/Projects/Tencent/operation-dianshi/node_modules/inventor -D -w"
+    "dev": "bash bin/dev.sh"
   },
   "repository": {
     "type": "git",

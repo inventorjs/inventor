@@ -15,9 +15,10 @@ import { normalizeMiddleware } from '../support/helpers'
 
 const coreRouter = new CoreRouter()
 
+const routes = []
+
 export default class Router extends IClass {
     _inited = false
-    _routes = []
     _routePath = ''
     _options={
         middlewares: [],
@@ -89,23 +90,25 @@ export default class Router extends IClass {
 
     _initRoutes() {
         // 资源路由降低匹配优先级
-        const sortedRoutes = [...this._routes].sort((routeA, routeB) => {
-            return routeB.type === 'resource'  ? -1 : 0
+        routes.sort((routeA, routeB) => {
+            return routeB.type === 'resource'  ? -1 : 1
         })
 
-        _.each(sortedRoutes, (route) => {
-            coreRouter[route.method].apply(coreRouter, ...route.middlewares, route.handler)
+        _.each(routes, (route) => {
+            const routeArgs = [route.path, ...route.middlewares, route.handler]
+            coreRouter[route.method].apply(coreRouter, routeArgs)
         })
 
         return true
     }
 
     routes() {
-        if (this.inited) {
+        if (this._inited) {
             return coreRouter.routes()
         }
         this._initRoutes()
         this._inited = true
+
         return coreRouter.routes()
     }
 
@@ -158,9 +161,7 @@ export default class Router extends IClass {
             await next()
         }
 
-        const routeArgs = [ route.path, routeMiddleware, ...route.middlewares, routeHandler]
-
-        this._routes.push({
+        routes.push({
             type,
             method,
             path: route.path,

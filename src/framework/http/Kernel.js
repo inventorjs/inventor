@@ -284,7 +284,6 @@ export default class Kernel extends EventEmitter {
         })
     }
 
-
     _registerBaseProvider() {
         this._registerLogProvider()
         this._registerRedisProvider()

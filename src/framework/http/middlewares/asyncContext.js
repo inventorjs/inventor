@@ -11,8 +11,9 @@ process.context = ac.create()
 export default async function asyncContext(ctx, next) {
     try {
         await next()
-    } catch(e) {
-    } finally {
         _.result(process.context, 'destroy')
+    } catch(e) {
+        _.result(process.context, 'destroy')
+        throw e
     }
 }
