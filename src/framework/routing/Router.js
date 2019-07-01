@@ -90,10 +90,6 @@ export default class Router extends IClass {
 
     _initRoutes() {
         // 资源路由降低匹配优先级
-        routes.sort((routeA, routeB) => {
-            return routeB.type === 'resource'  ? -1 : 1
-        })
-
         _.each(routes, (route) => {
             const routeArgs = [route.path, ...route.middlewares, route.handler]
             coreRouter[route.method].apply(coreRouter, routeArgs)

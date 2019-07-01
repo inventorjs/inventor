@@ -7,6 +7,7 @@
 import EventEmitter from 'events'
 import CoreApp from 'koa'
 import coreBody from 'koa-body'
+import coreStatic from 'koa-static'
 
 import './superGlobals'
 
@@ -230,13 +231,18 @@ export default class Kernel extends EventEmitter {
     }
 
     _initBaseMiddleware() {
+        const staticConfig = app().config('app').static
         const middlewareConfig = app().config('app').coreMiddleware
-        const coreBodyConfig = _.get(middlewareConfig, 'coreBody', { multipart: true })
+        const bodyConfig = _.get(middlewareConfig, 'body', { multipart: true })
+
+        if (staticConfig) {
+            this._coreApp.use(coreStatic(staticConfig.root, staticConfig.options))
+        }
+        this._coreApp.use(coreBody(bodyConfig))
 
         this._coreApp.use(asyncContextMiddleware)
         this._coreApp.use(requestTimeoutMiddleware)
         this._coreApp.use(requestResponseMiddleware)
-        this._coreApp.use(coreBody(coreBodyConfig))
         this._coreApp.use(requestLogMiddleware)
         this._coreApp.use(seqIdMiddleware)
         this._initSessionMiddleware()

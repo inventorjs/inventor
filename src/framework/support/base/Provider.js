@@ -7,6 +7,5 @@
 import IClass from './IClass'
 
 export default class Provider extends IClass {
-    register() {
-    }
+    register() {}
 }
