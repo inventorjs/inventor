@@ -27,7 +27,7 @@
     "koa-body": "^2.6.0",
     "koa-router": "^7.4.0",
     "koa-session": "^5.10.1",
-    "koa-static": "^5.0.0",
+    "koa-static-server": "^1.4.0",
     "lodash": "^4.17.11",
     "log4js": "^4.1.0",
     "moment": "^2.23.0",

@@ -7,7 +7,7 @@
 import EventEmitter from 'events'
 import CoreApp from 'koa'
 import coreBody from 'koa-body'
-import coreStatic from 'koa-static'
+import coreStatic from 'koa-static-server'
 
 import './superGlobals'
 
@@ -236,7 +236,7 @@ export default class Kernel extends EventEmitter {
         const bodyConfig = _.get(middlewareConfig, 'body', { multipart: true })
 
         if (staticConfig) {
-            this._coreApp.use(coreStatic(staticConfig.root, staticConfig.options))
+            this._coreApp.use(coreStatic(staticConfig))
         }
         this._coreApp.use(coreBody(bodyConfig))
 
