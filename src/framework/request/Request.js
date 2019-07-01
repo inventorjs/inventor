@@ -45,8 +45,6 @@ export default class Request extends IClass {
         maxContentLength: 10 * 1024 * 1024,
         timeout: DEFAULT_TIMEOUT,
         maxRedirects: 0,
-        transformRequest: [],
-        transformResponse: [],
         proxy: false,
     }
 
