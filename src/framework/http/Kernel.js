@@ -235,16 +235,17 @@ export default class Kernel extends EventEmitter {
         const middlewareConfig = app().config('app').coreMiddleware
         const bodyConfig = _.get(middlewareConfig, 'body', { multipart: true })
 
-        if (staticConfig) {
-            this._coreApp.use(coreStatic(staticConfig))
-        }
-        this._coreApp.use(coreBody(bodyConfig))
-
         this._coreApp.use(asyncContextMiddleware)
         this._coreApp.use(requestTimeoutMiddleware)
         this._coreApp.use(requestResponseMiddleware)
         this._coreApp.use(requestLogMiddleware)
         this._coreApp.use(seqIdMiddleware)
+
+        if (staticConfig) {
+            this._coreApp.use(coreStatic(staticConfig))
+        }
+        this._coreApp.use(coreBody(bodyConfig))
+
         this._initSessionMiddleware()
         this._initCustomMiddlewares()
         this._initRoutingMiddleware()

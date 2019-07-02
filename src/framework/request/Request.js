@@ -237,7 +237,7 @@ export default class Request extends IClass {
                 targetConfig.headers[SEQ_HEASER] = this._config.seqId()
             }
         } else if (this._config.seqId) {
-            targetConfig.headers[SEQ_HEASER] = process.context.get('seqId')
+            targetConfig.headers[SEQ_HEASER] = process.context.get('seqId') || ''
         }
 
         if (!~['get', 'delete'].indexOf(_.toLower(config.method))) {
