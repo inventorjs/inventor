@@ -48,6 +48,8 @@ export default class Request extends IClass {
         proxy: false,
     }
 
+    _supportConfig = [ 'transformRequest', 'transformResponse' ]
+
     _defaultCustomConfig = {
         httpResponse: false,
         requestInterceptors: [],
@@ -217,7 +219,7 @@ export default class Request extends IClass {
     }
 
     async _send(config) {
-        const targetConfig = { ...this._defaultConfig, ..._.pick(this._config, _.keys(this._defaultConfig)), ..._.pick(config, _.keys(this._defaultConfig)) }
+        const targetConfig = { ...this._defaultConfig, ..._.pick(this._config, _.keys(this._defaultConfig)), ..._.pick(config, [ ..._.keys(this._defaultConfig), ...this._supportConfig ]) }
         const customConfig = { ...this._defaultCustomConfig, ..._.pick(this._config, _.keys(this._defaultCustomConfig)), ..._.pick(config, _.keys(this._defaultCustomConfig)) }
 
         if (targetConfig.headers) {
