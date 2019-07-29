@@ -15,7 +15,10 @@ import { normalizeMiddleware } from '../support/helpers'
 
 const coreRouter = new CoreRouter()
 
+const routes = []
+
 export default class Router extends IClass {
+    _inited = false
     _routePath = ''
     _options={
         middlewares: [],
@@ -59,12 +62,14 @@ export default class Router extends IClass {
         return this._handle(...args)
     }
 
-    resource(resource, controller, options) {
-        this.post(`${resource}`, `${controller}@add`, options)
-        this.delete(`${resource}/:id`, `${controller}@remove`, options)
-        this.put(`${resource}/:id`, `${controller}@update`, options)
-        this.get(`${resource}`, `${controller}@list`, options)
-        this.get(`${resource}/:id`, `${controller}@query`, options)
+    resource(resource, controller, options={}) {
+        const type = 'resource'
+
+        this.post(`${resource}`, `${controller}@add`, { ...options, type })
+        this.delete(`${resource}/:id`, `${controller}@remove`, { ...options, type })
+        this.put(`${resource}/:id`, `${controller}@update`, { ...options, type })
+        this.get(`${resource}`, `${controller}@list`, { ...options, type })
+        this.get(`${resource}/:id`, `${controller}@query`, { ...options, type })
     }
 
     group(prefix, handler, { middlewares=[], locals={} }={}) {
@@ -83,7 +88,23 @@ export default class Router extends IClass {
         return groupRouter
     }
 
+    _initRoutes() {
+        // 资源路由降低匹配优先级
+        _.each(routes, (route) => {
+            const routeArgs = [route.path, ...route.middlewares, route.handler]
+            coreRouter[route.method].apply(coreRouter, routeArgs)
+        })
+
+        return true
+    }
+
     routes() {
+        if (this._inited) {
+            return coreRouter.routes()
+        }
+        this._initRoutes()
+        this._inited = true
+
         return coreRouter.routes()
     }
 
@@ -95,7 +116,7 @@ export default class Router extends IClass {
         return middlewareHandlers
     }
 
-    _handle(method, routePath, handler, { middlewares=[], locals={} }={}) {
+    _handle(method, routePath, handler, { middlewares=[], locals={}, type='normal' }={}) {
         const prefix = _.get(this, 'routePath', '')
         if (_.isArray(routePath)) {
             routePath = _.map(routePath, (routePathItem) => {
@@ -136,9 +157,13 @@ export default class Router extends IClass {
             await next()
         }
 
-        const routeArgs = [ route.path, routeMiddleware, ...route.middlewares, routeHandler]
-
-        coreRouter[method].apply(coreRouter, routeArgs)
+        routes.push({
+            type,
+            method,
+            path: route.path,
+            middlewares: [routeMiddleware, ...route.middlewares],
+            handler: routeHandler,
+        })
 
         return this
     }

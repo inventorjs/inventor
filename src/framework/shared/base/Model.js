@@ -6,5 +6,4 @@
 
 import IClass from '../../support/base/IClass'
 
-export default class Model extends IClass {
-}
+export default class Model extends IClass {}

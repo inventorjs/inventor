@@ -45,10 +45,10 @@ export default class Request extends IClass {
         maxContentLength: 10 * 1024 * 1024,
         timeout: DEFAULT_TIMEOUT,
         maxRedirects: 0,
-        transformRequest: [],
-        transformResponse: [],
         proxy: false,
     }
+
+    _supportConfig = [ 'transformRequest', 'transformResponse' ]
 
     _defaultCustomConfig = {
         httpResponse: false,
@@ -219,7 +219,7 @@ export default class Request extends IClass {
     }
 
     async _send(config) {
-        const targetConfig = { ...this._defaultConfig, ..._.pick(this._config, _.keys(this._defaultConfig)), ..._.pick(config, _.keys(this._defaultConfig)) }
+        const targetConfig = { ...this._defaultConfig, ..._.pick(this._config, _.keys(this._defaultConfig)), ..._.pick(config, [ ..._.keys(this._defaultConfig), ...this._supportConfig ]) }
         const customConfig = { ...this._defaultCustomConfig, ..._.pick(this._config, _.keys(this._defaultCustomConfig)), ..._.pick(config, _.keys(this._defaultCustomConfig)) }
 
         if (targetConfig.headers) {
@@ -238,6 +238,8 @@ export default class Request extends IClass {
             } else if (_.isFunction(this._config.seqId)) {
                 targetConfig.headers[SEQ_HEASER] = this._config.seqId()
             }
+        } else if (this._config.seqId) {
+            targetConfig.headers[SEQ_HEASER] = process.context.get('seqId') || ''
         }
 
         if (!~['get', 'delete'].indexOf(_.toLower(config.method))) {

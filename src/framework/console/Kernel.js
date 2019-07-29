@@ -1,51 +1,29 @@
 /**
- * Http 核心类
+ * Console 核心类
  *
- * @author : sunkeysun
+ * @author: sunkeysun
  */
 
-import EventEmitter from 'events'
-import CoreApp from 'koa'
-import coreBody from 'koa-body'
-import coreStatic from 'koa-static-server'
-
 import './superGlobals'
+import EventEmitter from 'events'
+import cronParser from 'cron-parser'
 
-import LogProvider from '../log/LogProvider'
-import RedisProvider from '../redis/RedisProvider'
-import DatabaseProvider from '../database/DatabaseProvider'
-import SessionProvider from '../session/SessionProvider'
-import RoutingProvider from '../routing/RoutingProvider'
-import RequestProvider from '../request/RequestProvider'
-import asyncContextMiddleware from './middlewares/asyncContext'
-import requestLogMiddleware from './middlewares/requestLog'
-import requestTimeoutMiddleware from './middlewares/requestTimeout'
-import requestResponseMiddleware from './middlewares/requestResponse'
-import seqIdMiddleware from './middlewares/seqId'
-import { config } from '../support/helpers'
-import version from '../version'
-import { normalizeMiddleware } from '../support/helpers'
+import ScheduleCommand from './commands/Schedule'
+import Schedule from './Schedule'
 
-export default class Kernel extends EventEmitter {
-    _coreApp = new CoreApp()
+export default class ConsoleKernel extends EventEmitter {
     _basePath = ''
     _logger = null
     _redis = null
     _db = null
-    _session = null
-    _viewEngine = null
     _env = ''
     _singletons = {}
     _booted = false
+    _commands = []
+    _scheduleCommand = 'inventor:schedule'
+    _schedule = null
 
     _envs = [ 'local', 'development', 'test', 'production' ]
-    _viewEngines = [
-        'react-redux',
-    ]
-
-    _appConfig = {}
-
-    _middlewares = []
 
     _events = {
         'process-uncaughtException': Symbol('process-uncaughtException'),
@@ -58,18 +36,12 @@ export default class Kernel extends EventEmitter {
         'process-exit': Symbol('process-exit'),
         'app-error': Symbol('app-error'),
         'app-timeout': Symbol('app-timeout'),
-        'app-listening': Symbol('app-listening'),
-        'session-error': Symbol('session-error'),
         'redis-connect': Symbol('redis-connect'),
         'redis-ready': Symbol('redis-ready'),
         'redis-error': Symbol('redis-error'),
         'database-connect': Symbol('database-connect'),
         'database-error': Symbol('database-error'),
-        'request-error': Symbol('request-error'),
-        'route-error': Symbol('route-error'),
     }
-
-    isBrowser = false
 
     constructor(basePath) {
         super()
@@ -77,10 +49,9 @@ export default class Kernel extends EventEmitter {
         this._basePath = basePath
         this._initEnv()
         this._registerGlobal()
-        this._initCoreApp()
         this._registerBaseProvider()
-        this._initBaseMiddleware()
-        this._initViewEngine()
+
+        this._schedule = new Schedule()
     }
 
     get version() {
@@ -96,28 +67,13 @@ export default class Kernel extends EventEmitter {
         return targetPath
     }
 
-    get routesPath() {
-        const targetPath = `${this.basePath}/server/routes`
-        return targetPath
-    }
-
-    get vendorPath() {
-        const targetPath = `${this.basePath}/server/vendor`
-        return targetPath
-    }
-
     get appPath() {
         const targetPath = `${this.basePath}/server/app`
         return targetPath
     }
 
-    get controllerPath() {
-        const targetPath = `${this.appPath}/http/controllers`
-        return targetPath
-    }
-
-    get sharedPath() {
-        const targetPath = `${this.basePath}/shared`
+    get commandPath() {
+        const targetPath = `${this.appPath}/http/commands`
         return targetPath
     }
 
@@ -133,11 +89,6 @@ export default class Kernel extends EventEmitter {
 
     get servicesPath() {
         const targetPath = `${this.appPath}/services`
-        return targetPath
-    }
-
-    get webpackPath() {
-        const targetPath = `${this.basePath}/webpack`
         return targetPath
     }
 
@@ -157,27 +108,16 @@ export default class Kernel extends EventEmitter {
         return this._request
     }
 
-    get viewEngine() {
-        return this._viewEngine
-    }
-
     get env() {
         return this._env
     }
 
-    config(configName) {
-        return config(configName)
+    get scheduleCommand() {
+        return this._scheduleCommand
     }
 
-    sharedConfig(configName) {
-        const configPath = `${this.sharedPath}/common/config/${configName}`
-        let config = {}
-
-        try {
-            config = require(configPath).default
-        } catch(e) {}
-
-        return config
+    config(configName) {
+        return config(configName)
     }
 
     model(modelName) {
@@ -223,72 +163,6 @@ export default class Kernel extends EventEmitter {
         }
 
         this._env = env
-    }
-
-    _initCoreApp() {
-        this._appConfig = this.config('app')
-        this._coreApp.keys = this.config('app').keys
-    }
-
-    _initBaseMiddleware() {
-        const staticConfig = app().config('app').static
-        const middlewareConfig = app().config('app').coreMiddleware
-        const bodyConfig = _.get(middlewareConfig, 'body', { multipart: true })
-
-        this._coreApp.use(asyncContextMiddleware)
-        this._coreApp.use(requestTimeoutMiddleware)
-        this._coreApp.use(requestResponseMiddleware)
-        this._coreApp.use(requestLogMiddleware)
-        this._coreApp.use(seqIdMiddleware)
-
-        if (staticConfig) {
-            this._coreApp.use(coreStatic(staticConfig))
-        }
-        this._coreApp.use(coreBody(bodyConfig))
-
-        this._initSessionMiddleware()
-        this._initCustomMiddlewares()
-        this._initRoutingMiddleware()
-    }
-
-    _initViewEngine() {
-        const viewConfig = app().config('app').view
-        if (!_.get(viewConfig, 'engine')) {
-            console.warn('view engine not found!')
-            return false
-        } else if (!~this._viewEngines.indexOf(viewConfig.engine)) {
-            console.warn(`view engine only support '${JSON.stringify(this._viewEngines)}'`)
-            return false
-        }
-
-        const modulesConfig = require(`${app().webpackPath}/config/modules`)
-
-        const ViewEngine = require(`inventor-view-${viewConfig.engine}/server`).default
-        this._viewEngine = new ViewEngine({
-            appPath: `${app().sharedPath}/${modulesConfig.app.ename}`,
-            commonPath: `${app().sharedPath}/${modulesConfig.common.ename}`,
-            vendorPath: `${app().sharedPath}/${modulesConfig.vendor.ename}`,
-        })
-    }
-
-    _initRoutingMiddleware() {
-        const routes = ( new RoutingProvider() ).register()
-        this._coreApp.use(routes)
-    }
-
-    _initSessionMiddleware() {
-        const session = ( new SessionProvider() ).register()
-        this._coreApp.use(session(this._coreApp))
-    }
-
-    _initCustomMiddlewares() {
-        if (!this._middlewares.length) {
-            return false
-        }
-
-        _.each(this._middlewares, (Middleware) => {
-            this._coreApp.use(normalizeMiddleware(Middleware.handle.bind(Middleware)))
-        })
     }
 
     _registerBaseProvider() {
@@ -421,37 +295,33 @@ export default class Kernel extends EventEmitter {
         })
     }
 
-    run() {
-        if (!!this._booted) {
-            throw new Error('Http kernel can\'t be rebooted.')
-        }
+    async runCommand(command, options={}) {
+        let Command = () => {}
+        let realOptions = options
 
-        const { host='', port } = this._appConfig.server
-
-        this._coreApp.onerror = (e, ctx) => {
-            const event = app().event('app-error')
-            if (app().listenerCount(event) > 0) {
-                return app().emit(event, e, ctx.iRequest, ctx.iResponse)
-            }
-
-            app().logger.error(e, 'app')
-
-            return ctx.iResponse.renderError('core', e)
-        }
-
-        let server = this._coreApp
-
-        if (host) {
-            server = this._coreApp.listen(port, host)
+        if (command === this._scheduleCommand) {
+            Command = ScheduleCommand
+            realOptions = {...options, crontabs: this._schedule.crontabs }
         } else {
-            server = this._coreApp.listen(port)
+            modulePath = `${this.commandPath}/${command}`
+            Command = require(modulePath).default
         }
 
-        server.on('listening', () => {
-            app().logger.info(`Inventor server listening on ${host}:${port}`, 'app')
-            app().emit(app().event('app-listening'), this._appConfig.server)
-        })
+        await Command.handle.apply(Command, realOptions)
+    }
+
+    _registerSchedule(schedule) {
+        console.log('You can schedule some job in schedule function.')
+    }
+
+    async run() {
+        if (this._booted) {
+            throw new Error('Console kernel can\'t be rebooted.')
+        }
 
         this._booted = true
+
+        this._registerSchedule(this._schedule)
+        this.runCommand(this._scheduleCommand)
     }
 }

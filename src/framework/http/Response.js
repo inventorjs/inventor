@@ -8,6 +8,7 @@ import IClass from '../support/base/IClass'
 export default class Response extends IClass {
     _ctx = null
     _locals = {}
+    _hasSend = false
 
     get locals() {
         return this._locals
@@ -43,7 +44,12 @@ export default class Response extends IClass {
     }
 
     send(data='') {
+        if (this._hasSend) {
+            throw new Error('response has been sent. cant\'t send again!')
+        }
+
         this._ctx.response.body = data
+        this._hasSend = true
         return this
     }
 
@@ -59,6 +65,7 @@ export default class Response extends IClass {
 
     redirect(url) {
         this._ctx.redirect(url)
+        this._hasSent = true
         return this
     }
 
@@ -101,12 +108,7 @@ export default class Response extends IClass {
             app().logger.error(e)
         }
 
-        if (code === 'core') {
-            this._ctx.res.statusCode = 500
-            return this._ctx.res.end(errContent)
-        } else {
-            return this.status(code).send(errContent)
-        }
+        return this.status(code).send(errContent)
     }
 
     jsonError(code, e) {
@@ -121,17 +123,13 @@ export default class Response extends IClass {
             jsonData = JSON.stringify(jsonObj)
         }
 
-        if (code === 'core') {
-            this._ctx.res.statusCode = 500
-            return this._ctx.res.end(jsonData)
-        } else {
-            return this.status(code).send(jsonData)
-        }
+        return this.status(code).send(jsonData)
     }
 
     render(...args) {
         const content = this.renderToString(...args)
-        return this.send(content)
+        this.send(content)
+        return this
     }
 
     renderToString(appName, initialState) {

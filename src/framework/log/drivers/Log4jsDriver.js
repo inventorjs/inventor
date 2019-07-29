@@ -12,6 +12,8 @@ export default class Log4jsDriver extends IClass {
 
     _modes = [ 'console', 'single', 'dateFile', 'levelDateFile', 'levelDirDateFile' ]
 
+    _layoutTypes = ['basic', 'messagePassThrough', 'dummy', 'pattern']
+
     _dateFileConfig = {
         type: 'dateFile',
         filename: '',
@@ -51,6 +53,10 @@ export default class Log4jsDriver extends IClass {
         const logPath = logConfig.logPath
         const layout = { ...this._defaultLayout, ..._.get(logConfig, 'layout', {}) }
         const targetConfig = _.extend({}, this._defaultConfig, _.pick(_.keys(this._defaultConfig)))
+
+        if (!~this._layoutTypes.indexOf(layout.type)) {
+            Log4js.addLayout(layout.type, layout.format)
+        }
 
         if (logConfig.mode === 'console') {
             targetConfig.appenders = {
@@ -128,14 +134,8 @@ export default class Log4jsDriver extends IClass {
         Log4js.configure(targetConfig)
 
         _.each(this._levels, (level) => {
-            this[level] = (msg, category='default') => {
-                if (_.isError(msg)) {
-                    msg = msg.stack
-                } else if (_.isObject(msg)) {
-                    msg = JSON.stringify(msg)
-                }
-                const realMsg = `${category} - ${msg}`
-                Log4js.getLogger(level)[level](realMsg)
+            this[level] = (msg) => {
+                Log4js.getLogger(level)[level](msg)
             }
         })
     }
