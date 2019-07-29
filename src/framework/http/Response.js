@@ -108,12 +108,7 @@ export default class Response extends IClass {
             app().logger.error(e)
         }
 
-        if (code === 'core') {
-            this._ctx.res.statusCode = 500
-            return this._ctx.res.end(errContent)
-        } else {
-            return this.status(code).send(errContent)
-        }
+        return this.status(code).send(errContent)
     }
 
     jsonError(code, e) {
@@ -128,12 +123,7 @@ export default class Response extends IClass {
             jsonData = JSON.stringify(jsonObj)
         }
 
-        if (code === 'core') {
-            this._ctx.res.statusCode = 500
-            return this._ctx.res.end(jsonData)
-        } else {
-            return this.status(code).send(jsonData)
-        }
+        return this.status(code).send(jsonData)
     }
 
     render(...args) {
