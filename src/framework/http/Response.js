@@ -8,7 +8,6 @@ import IClass from '../support/base/IClass'
 export default class Response extends IClass {
     _ctx = null
     _locals = {}
-    _hasSend = false
 
     get locals() {
         return this._locals
@@ -44,12 +43,11 @@ export default class Response extends IClass {
     }
 
     send(data='') {
-        if (this._hasSend) {
+        if (this._ctx.res.headersSent) {
             throw new Error('response has been sent. cant\'t send again!')
         }
 
         this._ctx.response.body = data
-        this._hasSend = true
         return this
     }
 
