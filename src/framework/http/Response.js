@@ -80,10 +80,6 @@ export default class Response extends IClass {
     }
 
     renderError(code, detail='') {
-        if (this._ctx.res.headersSent) {
-            return false
-        }
-
         if (this._ctx.iRequest.isAsync()) {
             return this.jsonError(code, detail)
         }
