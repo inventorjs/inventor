@@ -54,7 +54,7 @@ export default class Response extends IClass {
     }
 
     status(code) {
-        this._ctx.response.status = code
+        this._ctx.response.status = _.isNumber(code) ? code : 500
         return this
     }
 
@@ -95,7 +95,7 @@ export default class Response extends IClass {
 
         const initialState = {
             error: {
-                code: code === 'core' ? 500 : code,
+                code: code,
                 detail: _.isString(detail) ? detail : '',
             },
         }

@@ -436,7 +436,7 @@ export default class Kernel extends EventEmitter {
 
             app().logger.error(e, 'app')
 
-            return ctx.iResponse.renderError('core', e)
+            return ctx.iResponse.render500(e)
         }
 
         let server = this._coreApp
