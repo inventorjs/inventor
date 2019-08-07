@@ -44,7 +44,8 @@ export default class Response extends IClass {
 
     send(data='') {
         if (this._ctx.res.headersSent) {
-            throw new Error('response has been sent. cant\'t send again!')
+            app().logger.error(`response has been sent. cant\'t send again!(${this._ctx.req.url})`, 'headers-sent')
+            return
         }
 
         this._ctx.response.body = data
