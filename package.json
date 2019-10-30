@@ -34,7 +34,7 @@
     "mysql2": "^1.6.4",
     "node-async-context": "0.0.9",
     "query-string": "^6.2.0",
-    "sequelize": "^4.44.0",
+    "sequelize": "^5.15.1",
     "uuid": "^3.3.2"
   },
   "devDependencies": {
