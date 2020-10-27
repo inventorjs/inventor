@@ -22,8 +22,21 @@ export default class SessionProvider extends Provider {
                 break
         }
 
-        let targetConfig = _.pick(sessionConfig, ['key', 'maxAge', 'overwrite',
-                                                'httpOnly', 'signed', 'rolling', 'decode', 'encode'])
+        let targetConfig = _.pick(sessionConfig, [
+                                    'key',
+                                    'maxAge',
+                                    'overwrite',
+                                    'httpOnly',
+                                    'signed',
+                                    'rolling',
+                                    'renew',
+                                    'secure',
+                                    'sameSite',
+                                    'domain',
+                                    'autoCommit',
+                                    'decode',
+                                    'encode',
+                                ])
         if (!!store) {
             targetConfig = _.extend(targetConfig, { store })
         }
