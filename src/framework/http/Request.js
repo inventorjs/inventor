@@ -97,6 +97,10 @@ export default class Request extends IClass {
         return this._ctx.request.query
     }
 
+    get files() {
+        return this._ctx.request.files
+    }
+
     isAsync() {
         return !!this._ctx.request.headers['x-async-request']
     }
