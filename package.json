@@ -29,7 +29,7 @@
     "koa-session": "^5.10.1",
     "koa-static-server": "^1.4.0",
     "lodash": "^4.17.20",
-    "log4js": "^4.1.0",
+    "log4js": "^6.4.0",
     "moment": "^2.23.0",
     "mysql2": "^1.6.4",
     "node-async-context": "0.0.9",
