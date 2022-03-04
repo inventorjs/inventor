@@ -2,10 +2,12 @@
   "name": "inventor",
   "version": "0.1.17",
   "description": "",
-  "main": "index.js",
+  "main": "build/index.js",
+  "files": [
+    "build/"
+  ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "babel --delete-dir-on-start src -d build -D && cp package-lock.json package.json README.md build/",
+    "build": "babel --delete-dir-on-start src -d build -D",
     "dev": "bash bin/dev.sh"
   },
   "repository": {
@@ -19,34 +21,32 @@
   },
   "homepage": "https://github.com/inventorjs/inventor#readme",
   "dependencies": {
-    "axios": "^0.19.0",
-    "cron-parser": "^2.7.3",
-    "eventemitter3": "^3.1.0",
-    "ioredis": "^3.2.2",
-    "koa": "^2.6.2",
-    "koa-body": "^3.0.0",
-    "koa-router": "^7.4.0",
-    "koa-session": "^5.10.1",
-    "koa-static-server": "^1.4.0",
-    "lodash": "^4.17.20",
-    "log4js": "^4.1.0",
-    "moment": "^2.23.0",
-    "mysql2": "^1.6.4",
+    "axios": "^0.26.0",
+    "cron-parser": "^2.18.0",
+    "eventemitter3": "^3.1.2",
+    "ioredis": "^4.28.5",
+    "koa": "^2.13.4",
+    "koa-body": "^4.2.0",
+    "koa-router": "^10.1.1",
+    "koa-session": "^5.13.1",
+    "koa-static-server": "^1.5.2",
+    "lodash": "^4.17.21",
+    "log4js": "^6.4.1",
+    "moment": "^2.29.1",
+    "mysql2": "^2.3.3",
     "node-async-context": "0.0.9",
-    "query-string": "^6.2.0",
-    "sequelize": "^6.3.5",
-    "uuid": "^3.3.2"
+    "qs": "^6.10.3",
+    "sequelize": "^6.16.2",
+    "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@babel/cli": "^7.2.3",
-    "@babel/core": "^7.2.2",
-    "@babel/plugin-proposal-class-properties": "^7.2.3",
-    "@babel/plugin-proposal-decorators": "^7.2.3",
-    "@babel/plugin-proposal-export-default-from": "^7.2.0",
-    "@babel/plugin-proposal-export-namespace-from": "^7.2.0",
-    "@babel/plugin-transform-runtime": "^7.2.0",
-    "@babel/preset-env": "^7.2.3",
-    "@babel/plugin-proposal-function-bind": "^7.2.0",
-    "@babel/plugin-syntax-dynamic-import": "^7.2.0"
+    "@babel/cli": "^7.17.6",
+    "@babel/core": "^7.17.5",
+    "@babel/plugin-proposal-class-properties": "^7.16.7",
+    "@babel/plugin-proposal-decorators": "^7.17.2",
+    "@babel/plugin-proposal-export-default-from": "^7.16.7",
+    "@babel/plugin-proposal-export-namespace-from": "^7.16.7",
+    "@babel/plugin-transform-runtime": "^7.17.0",
+    "@babel/preset-env": "^7.16.11"
   }
 }

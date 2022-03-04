@@ -4,7 +4,7 @@
  * @author: sunkeysun
  */
 
-import uuid from 'uuid/v1'
+import { v4 as uuid } from 'uuid'
 
 export default async function seqId(ctx, next) {
     const requestConfig = app().config('app').request
