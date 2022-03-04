@@ -4,9 +4,9 @@
  * @author : sunkeysun
  */
 
-import qs from 'query-string'
+import qs from 'qs'
 import axios from 'axios'
-import uuid from 'uuid/v1'
+import { v4 as uuid } from 'uuid'
 
 import IClass from '../support/base/IClass'
 
