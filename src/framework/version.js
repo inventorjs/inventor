@@ -4,7 +4,7 @@
  * @author : sunkeysun
  */
 
-import packageJson from '../package.json'
+import packageJson from '../../package.json'
 
 export default {
     name: packageJson.name,
