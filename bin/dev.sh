@@ -16,6 +16,6 @@ echo "package in on dev mode，don't forget recover you project dependencies by 
 echo "============================================"
 
 dev_path=`cat ${dev_file}`
-full_path="${dev_path}/${package_path}/build"
+full_path="${dev_path}/${package_path}"
 
 babel src -d "$full_path" -D --watch

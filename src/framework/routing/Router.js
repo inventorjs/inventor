@@ -93,6 +93,10 @@ export default class Router extends IClass {
         _.each(routes, (route) => {
             const routeArgs = [route.path, ...route.middlewares, route.handler]
             coreRouter[route.method].apply(coreRouter, routeArgs)
+            if (route.path !== '/' && route.path.endsWith('/')) {
+                const routeArgsEx = [_.trimEnd(route.path, '/'), ...route.middlewares, route.handler]
+                coreRouter[route.method].apply(coreRouter, routeArgs)
+            }
         })
 
         return true
