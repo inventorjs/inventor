@@ -2,12 +2,8 @@
   "name": "inventor",
   "version": "1.0.3",
   "description": "",
-  "main": "build/index.js",
-  "files": [
-    "build/"
-  ],
   "scripts": {
-    "build": "babel --delete-dir-on-start src -d build -D",
+    "build": "babel --delete-dir-on-start src -d build -D && cp package.json README.md build/",
     "dev": "bash bin/dev.sh"
   },
   "repository": {
