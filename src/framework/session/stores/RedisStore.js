@@ -13,18 +13,16 @@ const debug = DEBUG('inventor:session')
 
 export default class RedisStore extends IClass {
     _redis = null
-    _timeout
 
-    constructor(redisConfig, { timeout=200 }) {
+    constructor(redisConfig) {
         super()
 
         this._redis = new RedisDriver(redisConfig)
-        this._timeout = timeout
     }
 
     async get(sid, maxAge, { rolling }) {
         try {
-            const data = await this._redis.get(sid).timeout(this._timeout)
+            const data = await this._redis.get(sid)
             const resultData = unserialize(data)
             debug(`key: ${sid} data: ${data} resultData: ${resultData}`)
             return resultData
@@ -37,7 +35,7 @@ export default class RedisStore extends IClass {
 
     async set(sid, sess, maxAge, { changed, rolling }) {
         try {
-            return await this._redis.set(sid, serialize(sess), 'EX', Math.floor(maxAge/1000)).timeout(this._timeout)
+            return await this._redis.set(sid, serialize(sess), 'EX', Math.floor(maxAge/1000))
         } catch (e) {
             app().emit(app().event('session-error'), e, 'set')
             return false
@@ -46,7 +44,7 @@ export default class RedisStore extends IClass {
 
     async destroy(sid) {
         try {
-            return await this._redis.del(sid).timeout(this._timeout)
+            return await this._redis.del(sid)
         } catch (e) {
             app().emit(app().event('session-error'), e, 'destroy')
         }
