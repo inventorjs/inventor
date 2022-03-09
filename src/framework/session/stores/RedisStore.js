@@ -3,11 +3,13 @@
  *
  * @author : sunkeysun
  */
-
+import DEBUG from 'debug'
 import IClass from '../../support/base/IClass'
 import RedisDriver from '../../support/drivers/RedisDriver'
 
 import { serialize, unserialize } from '../helpers'
+
+const debug = DEBUG('inventor:session')
 
 export default class RedisStore extends IClass {
     _redis = null
@@ -24,8 +26,10 @@ export default class RedisStore extends IClass {
         try {
             const data = await this._redis.get(sid).timeout(this._timeout)
             const resultData = unserialize(data)
+            debug(`key: ${sid} data: ${data} resultData: ${resultData}`)
             return resultData
         } catch (e) {
+            debug(`key: ${sid} error: ${e}`)
             app().emit(app().event('session-error'), e, 'get')
             return false
         }
