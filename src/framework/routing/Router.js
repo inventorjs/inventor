@@ -91,12 +91,8 @@ export default class Router extends IClass {
     _initRoutes() {
         // 资源路由降低匹配优先级
         _.each(routes, (route) => {
-            const routeArgs = [route.path, ...route.middlewares, route.handler]
+            const routeArgs = [_.trimEnd(route.path, '/'), ...route.middlewares, route.handler]
             coreRouter[route.method].apply(coreRouter, routeArgs)
-            if (route.path !== '/' && route.path.endsWith('/')) {
-                const routeArgsEx = [_.trimEnd(route.path, '/'), ...route.middlewares, route.handler]
-                coreRouter[route.method].apply(coreRouter, routeArgs)
-            }
         })
 
         return true
