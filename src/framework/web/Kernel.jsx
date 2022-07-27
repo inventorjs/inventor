@@ -7,8 +7,6 @@
 import lodash from 'lodash'
 import moment from 'moment'
 import EventEmitter from 'eventemitter3'
-
-global = typeof window !== undefined && window || this
 import './superGlobals'
 
 import RequestProvider from '../request/RequestProvider'

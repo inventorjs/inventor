@@ -37,6 +37,7 @@ export default class Request extends IClass {
         data: {},
         headers: {
             'X-Async-Request': true,
+            'X-Requested-With': 'XMLHttpRequest',
         },
         withCredentials: true,
         responseType: 'json',
