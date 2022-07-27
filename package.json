@@ -1,6 +1,6 @@
 {
   "name": "inventor",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "",
   "scripts": {
     "build": "babel --delete-dir-on-start src -d build -D && cp package.json README.md build/",
