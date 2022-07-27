@@ -102,6 +102,6 @@ export default class Request extends IClass {
     }
 
     isAsync() {
-        return !!this._ctx.request.headers['x-async-request']
+        return !!this._ctx.request.headers['x-async-request'] || this._ctx.request.headers['x-requested-with'] === 'XMLHttpRequest'
     }
 }
