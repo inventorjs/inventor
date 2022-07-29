@@ -62,7 +62,7 @@ export default class Router extends IClass {
         return this._handle(...args)
     }
 
-    options(...args) {
+    option(...args) {
         args.unshift('options')
         return this._handle(...args)
     }
