@@ -62,6 +62,11 @@ export default class Router extends IClass {
         return this._handle(...args)
     }
 
+    options(...args) {
+        args.unshift('options')
+        return this._handle(...args)
+    }
+
     resource(resource, controller, options={}) {
         const type = 'resource'
 
