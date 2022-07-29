@@ -62,11 +62,6 @@ export default class Router extends IClass {
         return this._handle(...args)
     }
 
-    option(...args) {
-        args.unshift('options')
-        return this._handle(...args)
-    }
-
     resource(resource, controller, options={}) {
         const type = 'resource'
 
@@ -162,13 +157,19 @@ export default class Router extends IClass {
             await next()
         }
 
-        routes.push({
+        const routeItem = {
             type,
             method,
             path: route.path,
             middlewares: [routeMiddleware, ...route.middlewares],
             handler: routeHandler,
-        })
+        }
+
+        routes.push(routeItem)
+
+        if (route.locals?.cors) {
+            routes.push({ ...routeItem, method: 'options' })
+        }
 
         return this
     }
