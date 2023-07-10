@@ -10,6 +10,9 @@
     "type": "git",
     "url": "git+https://github.com/inventorjs/inventor.git"
   },
+  "files": [
+    "build/"
+  ],
   "author": "sunkeysun",
   "license": "MIT",
   "bugs": {
