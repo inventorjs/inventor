@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/inventorjs/inventor#readme",
   "dependencies": {
-    "axios": "^0.26.0",
+    "axios": "^1.4.0",
     "cron-parser": "^2.18.0",
     "debug": "^4.3.3",
     "eventemitter3": "^3.1.2",
