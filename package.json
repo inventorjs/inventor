@@ -10,6 +10,12 @@
     "type": "git",
     "url": "git+https://github.com/inventorjs/inventor.git"
   },
+  "main": "./build/index.js",
+  "exports": {
+    ".": "./build/index.js",
+    "./web": "./build/web.js",
+    "./shared": "./build/shared.js"
+  },
   "files": [
     "build/"
   ],
