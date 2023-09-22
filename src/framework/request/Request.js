@@ -294,7 +294,7 @@ export default class Request extends IClass {
               Reflect.deleteProperty(realConfig, 'timeout');
             }
 
-            const res = await instance.request(targetConfig)
+            const res = await instance.request(realConfig)
             clearTimeout(reqTimer)
             if (raceKey) {
                 if (this._raceMap[raceKey] && this._raceMap[raceKey] !== requestId) {
