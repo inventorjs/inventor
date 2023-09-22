@@ -5,7 +5,7 @@
  */
 
 import qs from 'qs'
-import axios from 'axios'
+import axios, { CancelToken } from 'axios'
 import { v4 as uuid } from 'uuid'
 
 import IClass from '../support/base/IClass'
@@ -49,7 +49,7 @@ export default class Request extends IClass {
         proxy: false,
     }
 
-    _supportConfig = [ 'transformRequest', 'transformResponse' ]
+    _supportConfig = ['transformRequest', 'transformResponse']
 
     _defaultCustomConfig = {
         httpResponse: false,
@@ -59,7 +59,7 @@ export default class Request extends IClass {
 
     _raceMap = {}
 
-    constructor(config={}) {
+    constructor(config = {}) {
         super()
 
         this._config = { ...this._config, ...config }
@@ -69,7 +69,7 @@ export default class Request extends IClass {
         return SEQ_HEASER
     }
 
-    get(url, data, config={}) {
+    get(url, data, config = {}) {
         const targetConfig = {
             ...config,
             method: 'get',
@@ -80,7 +80,7 @@ export default class Request extends IClass {
         return this._send(targetConfig)
     }
 
-    post(url, data, config={}) {
+    post(url, data, config = {}) {
         const targetConfig = {
             ...config,
             method: 'post',
@@ -91,7 +91,7 @@ export default class Request extends IClass {
         return this._send(targetConfig)
     }
 
-    put(url, data, config={}) {
+    put(url, data, config = {}) {
         const targetConfig = {
             ...config,
             method: 'put',
@@ -102,7 +102,7 @@ export default class Request extends IClass {
         return this._send(targetConfig)
     }
 
-    delete(url, data, config={}) {
+    delete(url, data, config = {}) {
         const targetConfig = {
             ...config,
             method: 'delete',
@@ -113,7 +113,7 @@ export default class Request extends IClass {
         return this._send(targetConfig)
     }
 
-    patch(url, data, config={}) {
+    patch(url, data, config = {}) {
         const targetConfig = {
             ...config,
             method: 'patch',
@@ -124,14 +124,14 @@ export default class Request extends IClass {
         return this._send(targetConfig)
     }
 
-    jsonp(url, data={}, config={}) {
+    jsonp(url, data = {}, config = {}) {
         if (!app().isBrowser) {
             throw new Error('jsonp only used in browser')
         }
 
         return new Promise((resolve, reject) => {
             const targetConfig = { ...this._jsonpConfig, ..._.pick(this._config, _.keys(this._jsonpConfig)), ..._.pick(config, _.keys(this._jsonpConfig)) }
-            const jsonpId = targetConfig.prefix + (++this._jsonpCount%_.toSafeInteger(_.pad('', 20, '9')))
+            const jsonpId = targetConfig.prefix + (++this._jsonpCount % _.toSafeInteger(_.pad('', 20, '9')))
             let script = null
 
             const realData = { ...data, [targetConfig.callback]: jsonpId, _: Date.now() }
@@ -158,7 +158,7 @@ export default class Request extends IClass {
                 resolve(data)
             }
 
-            script  = document.createElement('script')
+            script = document.createElement('script')
             script.src = realUrl
             document.body.append(script)
 
@@ -171,7 +171,7 @@ export default class Request extends IClass {
 
     _normalizeHttp(obj) {
         return _.mapKeys(obj, (val, key) => {
-            switch(key) {
+            switch (key) {
                 case 'statusText':
                     return 'message'
                 case 'headers':
@@ -207,7 +207,7 @@ export default class Request extends IClass {
         if (_.isString(_.get(res, 'config.data'))) {
             try {
                 data = JSON.parse(res.config.data)
-            } catch (e) {}
+            } catch (e) { }
         }
 
         const logStr = JSON.stringify({
@@ -220,7 +220,7 @@ export default class Request extends IClass {
     }
 
     async _send(config) {
-        const targetConfig = { ...this._defaultConfig, ..._.pick(this._config, _.keys(this._defaultConfig)), ..._.pick(config, [ ..._.keys(this._defaultConfig), ...this._supportConfig ]) }
+        const targetConfig = { ...this._defaultConfig, ..._.pick(this._config, _.keys(this._defaultConfig)), ..._.pick(config, [..._.keys(this._defaultConfig), ...this._supportConfig]) }
         const customConfig = { ...this._defaultCustomConfig, ..._.pick(this._config, _.keys(this._defaultCustomConfig)), ..._.pick(config, _.keys(this._defaultCustomConfig)) }
 
         if (targetConfig.headers) {
@@ -270,27 +270,40 @@ export default class Request extends IClass {
             } else {
                 return response.data
             }
-        }, (e) => { throw e } )
+        }, (e) => { throw e })
 
         if (_.get(customConfig.requestInterceptors, 'length')) {
             _.each(customConfig.requestInterceptors,
-                (interceptor) => instance.interceptors.request.use(interceptor, (e) => { throw e } ))
+                (interceptor) => instance.interceptors.request.use(interceptor, (e) => { throw e }))
         }
 
         if (_.get(customConfig.responseInterceptors, 'length')) {
             _.each(customConfig.responseInterceptors,
-                (interceptor) => instance.interceptors.response.use(interceptor, (e) => { throw e } ))
+                (interceptor) => instance.interceptors.response.use(interceptor, (e) => { throw e }))
         }
 
+        let reqTimer
         try {
+            const cancelSource = CancelToken.source();
+            const realConfig = { ...targetConfig };
+            if (realConfig.timeout) {
+              Object.assign(realConfig, { cancelToken: cancelSource.token });
+              reqTimer = setTimeout(() => {
+                cancelSource.cancel(`request timeout canceled at ${targetConfig.timeout}ms`);
+              }, realConfig.timeout);
+              Reflect.deleteProperty(realConfig, 'timeout');
+            }
+
             const res = await instance.request(targetConfig)
+            clearTimeout(reqTimer)
             if (raceKey) {
                 if (this._raceMap[raceKey] && this._raceMap[raceKey] !== requestId) {
-                    return new Promise(() => {})
+                    return new Promise(() => { })
                 }
             }
             return res
         } catch (e) {
+            clearTimeout(reqTimer)
             if (raceKey && this.raceMap[raceKey]) {
                 this.raceMap[raceKey] = null
             }
