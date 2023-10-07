@@ -47,6 +47,23 @@ export default class Request extends IClass {
         timeout: DEFAULT_TIMEOUT,
         maxRedirects: 0,
         proxy: false,
+        paramsSerializer: {
+            serialize(params) {
+                if (!params || typeof params !== 'object') return ''
+                const paramStr = Object.keys(params)
+                    .filter((key) => typeof params[key] !== 'undefined')
+                    .map((key) => {
+                        let value = params[key]
+                        if (typeof value === 'object') {
+                            try {
+                                value = JSON.stringify(value)
+                            } catch (err) {}
+                        }
+                        return `${encodeURIComponent(key)}=${encodeURIComponent(value)}`
+                    }).join('&')
+                return paramStr
+            },
+        },
     }
 
     _supportConfig = ['transformRequest', 'transformResponse']
