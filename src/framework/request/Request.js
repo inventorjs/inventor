@@ -320,6 +320,7 @@ export default class Request extends IClass {
             }
             return res
         } catch (e) {
+            console.log(e, targetConfig)
             clearTimeout(reqTimer)
             if (raceKey && this.raceMap[raceKey]) {
                 this.raceMap[raceKey] = null
