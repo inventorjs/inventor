@@ -19,10 +19,17 @@ export default async function requestLog(ctx, next) {
         } catch (e) {}
     }
 
+    let jsonBody = body
+    try {
+        JSON.stringify(jsonBody)
+    } catch (e) {
+        jsonBody = ''
+    }
+
     try {
         const logInfo = JSON.stringify({
             '[[WebRequest]]': _.pick(ctx.request, ['url', 'method', 'header', 'body']),
-            '[[WebResponse]]': { ..._.pick(ctx.response, ['status', 'message', 'header', 'body']), body },
+            '[[WebResponse]]': { ..._.pick(ctx.response, ['status', 'message', 'header', 'body']), body: jsonBody },
             '[[TimeCost]]': timeCost,
         })
 
