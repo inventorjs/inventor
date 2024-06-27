@@ -19,11 +19,15 @@ export default async function requestLog(ctx, next) {
         } catch (e) {}
     }
 
-    const logInfo = JSON.stringify({
-        '[[WebRequest]]': _.pick(ctx.request, ['url', 'method', 'header', 'body']),
-        '[[WebResponse]]': { ..._.pick(ctx.response, ['status', 'message', 'header', 'body']), body },
-        '[[TimeCost]]': timeCost,
-    })
+    try {
+        const logInfo = JSON.stringify({
+            '[[WebRequest]]': _.pick(ctx.request, ['url', 'method', 'header', 'body']),
+            '[[WebResponse]]': { ..._.pick(ctx.response, ['status', 'message', 'header', 'body']), body },
+            '[[TimeCost]]': timeCost,
+        })
 
-    app().logger.info(logInfo)
+        app().logger.info(logInfo)
+    } catch (err) {
+        app().logger.error(err);
+    }
 }
