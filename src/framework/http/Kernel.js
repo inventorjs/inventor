@@ -13,7 +13,7 @@ import './superGlobals'
 
 import LogProvider from '../log/LogProvider'
 import RedisProvider from '../redis/RedisProvider'
-import DatabaseProvider from '../database/DatabaseProvider'
+// import DatabaseProvider from '../database/DatabaseProvider'
 import SessionProvider from '../session/SessionProvider'
 import RoutingProvider from '../routing/RoutingProvider'
 import RequestProvider from '../request/RequestProvider'
@@ -294,7 +294,7 @@ export default class Kernel extends EventEmitter {
     _registerBaseProvider() {
         this._registerLogProvider()
         this._registerRedisProvider()
-        this._registerDatabaseProvider()
+        // this._registerDatabaseProvider()
         this._registerRequestProvider()
     }
 
@@ -306,9 +306,9 @@ export default class Kernel extends EventEmitter {
         this._redis = ( new RedisProvider() ).register()
     }
 
-    _registerDatabaseProvider() {
-        this._db = ( new DatabaseProvider() ).register()
-    }
+    // _registerDatabaseProvider() {
+    //     this._db = ( new DatabaseProvider() ).register()
+    // }
 
     _registerRequestProvider() {
         const requestConfig = _.defaults(app().config('app').request, { ua: this.version })
