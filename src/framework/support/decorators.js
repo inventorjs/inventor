@@ -6,6 +6,7 @@
 
 export function dbModel() {
     return (Target, key, descriptor) => {
+        return false
         const db = Target._db
         const tableName = Target._tableName
         const schema = Target._schema
